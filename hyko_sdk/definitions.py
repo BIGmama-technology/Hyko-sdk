@@ -2,18 +2,20 @@ import json
 import subprocess
 from typing import Any, Callable, Coroutine, Type, TypeVar
 
+import docker  # type: ignore
+import httpx
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from hyko_sdk.models import (
+from .models import (
     Category,
     FunctionMetaData,
     HykoJsonSchema,
     MetaDataBase,
     ModelMetaData,
 )
-from hyko_sdk.utils import to_friendly_types
+from .utils import to_friendly_types
 
 InputsType = TypeVar("InputsType", bound="BaseModel")
 ParamsType = TypeVar("ParamsType", bound="BaseModel")
@@ -22,6 +24,7 @@ OutputsType = TypeVar("OutputsType", bound="BaseModel")
 OnStartupFuncType = Callable[[ParamsType], Coroutine[Any, Any, None]]
 OnShutdownFuncType = Callable[[], Coroutine[Any, Any, None]]
 OnExecuteFuncType = Callable[[InputsType, ParamsType], Coroutine[Any, Any, OutputsType]]
+OnCallType = Callable[..., Any]
 
 T = TypeVar("T", bound=Type[BaseModel])
 
@@ -85,8 +88,6 @@ class ToolkitBase:
         )
 
     def write(self, host: str, username: str, password: str):
-        import httpx
-
         response = httpx.post(
             f"https://api.{host}/toolkit/write",
             content=self.dump_metadata(),
@@ -99,7 +100,7 @@ class ToolkitBase:
                 f"Failed to write to hyko db. Error code {response.status_code}"
             )
 
-    def deploy(self, host: str, username: str, password: str):
+    def deploy(self, host: str, username: str, password: str, **kwargs: Any):
         self.write(host, username, password)
 
 
@@ -147,6 +148,10 @@ class ToolkitFunction(ToolkitBase, FastAPI):
                 "Failed to build function docker image.",
             ) from e
 
+        client = docker.DockerClient(base_url="unix://var/run/docker.sock")  # type: ignore
+        image = client.images.get(self.image_name)  # type: ignore
+        self.size: int = image.attrs["Size"]  # type: ignore
+
     def push(self):
         try:
             subprocess.run(
@@ -172,6 +177,7 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         metadata = FunctionMetaData(
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
+            size=self.size,
         )
         return metadata.model_dump_json(
             exclude_none=True,
@@ -217,8 +223,37 @@ class ToolkitModel(ToolkitFunction):
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
             startup_params=self.startup_params,
+            size=self.size,
         )
-        return metadata.model_dump_json(
-            exclude_none=True,
-            by_alias=True,
+        return metadata.model_dump_json(exclude_none=True, by_alias=True)
+
+
+class ToolkitAPI(ToolkitBase):
+    def __init__(self, name: str, task: str, description: str):
+        super().__init__(name=name, task=task, desc=description)
+        self.category = Category.API
+
+    def set_input(self, model: T) -> T:
+        self.inputs_model = model
+        self.inputs = HykoJsonSchema(
+            **model.model_json_schema(),
+            friendly_types=to_friendly_types(model),
         )
+        return model
+
+    def set_param(self, model: T) -> T:
+        self.params_model = model
+        self.params = HykoJsonSchema(
+            **model.model_json_schema(),
+            friendly_types=to_friendly_types(model),
+        )
+        return model
+
+    def on_call(self, f: OnCallType):
+        self.call = f
+
+    def execute(self, inputs: dict[str, Any], params: dict[str, Any]) -> Any:
+        validated_inputs = self.inputs_model(**inputs)
+        validated_params = self.params_model(**params)
+
+        return self.call(validated_inputs, validated_params)
