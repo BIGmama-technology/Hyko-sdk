@@ -152,24 +152,12 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         image = client.images.get(self.image_name)  # type: ignore
         self.size: int = image.attrs["Size"]  # type: ignore
 
-    def push(self):
-        try:
-            subprocess.run(
-                f"docker push {self.image_name}".split(" "),
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            raise BaseException(
-                "Failed to push to docker registry.",
-            ) from e
-
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
         self.image_name = f"registry.{host}/{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
         dockerfile_path = kwargs.get("dockerfile_path")
         assert dockerfile_path, "docker file path missing"
 
         self.build(dockerfile_path)
-        self.push()
         self.write(host, username, password)
 
     def dump_metadata(self) -> str:
