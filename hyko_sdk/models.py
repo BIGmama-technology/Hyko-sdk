@@ -93,8 +93,8 @@ class MetaDataBase(BaseModel):
 class FunctionMetaData(MetaDataBase):
     image: Optional[str] = None
     size: int
-    dockerfile_path: str
-    docker_context: str
+    dockerfile_path: Optional[str] = None
+    docker_context: Optional[str] = None
 
 
 class ModelMetaData(FunctionMetaData):
