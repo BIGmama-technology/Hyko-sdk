@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from typing import Any, Callable, Coroutine, Type, TypeVar
 
@@ -76,21 +77,19 @@ class ToolkitBase:
             outputs=self.outputs,
         )
 
-    def dump_metadata(
-        self,
-    ) -> str:
+    def dump_metadata(self, **kwargs: Any) -> str:
         metadata = MetaDataBase(
-            **self.get_base_metadata().model_dump(exclude_none=True),
+            **self.get_base_metadata().model_dump(exclude_none=True), **kwargs
         )
         return metadata.model_dump_json(
             exclude_none=True,
             by_alias=True,
         )
 
-    def write(self, host: str, username: str, password: str):
+    def write(self, host: str, username: str, password: str, **kwargs: Any):
         response = httpx.post(
             f"https://api.{host}/toolkit/write",
-            content=self.dump_metadata(),
+            content=self.dump_metadata(**kwargs),
             auth=httpx.BasicAuth(username, password),
             verify=False if host == "traefik.me" else True,
         )
@@ -101,7 +100,7 @@ class ToolkitBase:
             )
 
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.write(host, username, password)
+        self.write(host, username, password, **kwargs)
 
 
 class ToolkitFunction(ToolkitBase, FastAPI):
@@ -158,14 +157,21 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         assert dockerfile_path, "docker file path missing"
 
         self.build(dockerfile_path)
-        self.write(host, username, password)
+        self.write(
+            host,
+            username,
+            password,
+            dockerfile_path=dockerfile_path,
+            docker_context=os.getcwd(),
+        )
 
-    def dump_metadata(self) -> str:
+    def dump_metadata(self, **kwargs: Any) -> str:
         base_metadata = self.get_base_metadata()
         metadata = FunctionMetaData(
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
             size=self.size,
+            **kwargs,
         )
         return metadata.model_dump_json(
             exclude_none=True,
@@ -205,13 +211,14 @@ class ToolkitModel(ToolkitFunction):
     def on_shutdown(self, f: OnShutdownFuncType) -> OnShutdownFuncType:
         return self.on_event("shutdown")(f)
 
-    def dump_metadata(self) -> str:
+    def dump_metadata(self, **kwargs: Any) -> str:
         base_metadata = self.get_base_metadata()
         metadata = ModelMetaData(
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
             startup_params=self.startup_params,
             size=self.size,
+            **kwargs,
         )
         return metadata.model_dump_json(exclude_none=True, by_alias=True)
 
