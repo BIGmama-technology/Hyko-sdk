@@ -99,7 +99,7 @@ class ToolkitBase:
             )
 
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.write(host, username, password, **kwargs)
+        self.write(host, username, password)
 
 
 class ToolkitFunction(ToolkitBase, FastAPI):
