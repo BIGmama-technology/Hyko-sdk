@@ -173,7 +173,6 @@ class ToolkitFunction(ToolkitBase, FastAPI):
             size=self.size,
             **kwargs,
         )
-        print(metadata)
         return metadata.model_dump_json(
             exclude_none=True,
             by_alias=True,
