@@ -1,5 +1,4 @@
 import json
-import os
 import subprocess
 from typing import Any, Callable, Coroutine, Type, TypeVar
 
@@ -154,15 +153,20 @@ class ToolkitFunction(ToolkitBase, FastAPI):
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
         self.image_name = f"registry.{host}/{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
         dockerfile_path = kwargs.get("dockerfile_path")
+        absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
+        docker_context = kwargs.get("docker_context")
+
         assert dockerfile_path, "docker file path missing"
+        assert absolute_dockerfile_path, "absolute docker file path missing"
+        assert docker_context, "docker context path missing"
 
         self.build(dockerfile_path)
         self.write(
             host,
             username,
             password,
-            dockerfile_path=dockerfile_path,
-            docker_context=os.getcwd(),
+            dockerfile_path=absolute_dockerfile_path,
+            docker_context=docker_context,
         )
 
     def dump_metadata(self, **kwargs: Any) -> str:
