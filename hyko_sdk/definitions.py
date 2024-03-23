@@ -221,6 +221,8 @@ class ToolkitModel(ToolkitFunction):
             image=self.image_name,
             startup_params=self.startup_params,
             size=self.size,
+            dockerfile_path=self.absolute_dockerfile_path,
+            docker_context=self.docker_context,
         )
         return metadata.model_dump_json(exclude_none=True, by_alias=True)
 
