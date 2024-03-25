@@ -151,7 +151,9 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         self.size: int = image.attrs["Size"]  # type: ignore
 
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.image_name = f"registry.{host}/{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
+        self.image_name = (
+            f"{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
+        )
         self.absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
         self.docker_context = kwargs.get("docker_context")
         dockerfile_path = kwargs.get("dockerfile_path")
