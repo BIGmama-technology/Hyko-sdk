@@ -91,10 +91,10 @@ class MetaDataBase(BaseModel):
 
 
 class FunctionMetaData(MetaDataBase):
-    image: Optional[str] = None
+    image: str
     size: int
-    dockerfile_path: Optional[str] = None
-    docker_context: Optional[str] = None
+    dockerfile_path: str 
+    docker_context: str
 
 
 class ModelMetaData(FunctionMetaData):
@@ -113,7 +113,7 @@ class APIMetaData(MetaDataBase):
     @computed_field
     @property
     def image(self) -> str:
-        return self.task + "/" + self.name
+        return Category.API.value + "/" + self.task + "/" + self.name
 
 
 class CoreModel(BaseModel):
