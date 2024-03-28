@@ -15,7 +15,8 @@ def sample_nd_array_data():
 
 @pytest.fixture
 def sample_audio_data():
-    return np.zeros((100, 1), dtype=np.uint8)
+    rate = 16000
+    return np.random.uniform(-1, 1, rate)
 
 
 @pytest.fixture
@@ -59,11 +60,11 @@ def test_validate_img_name(name: str):
     "name",
     [
         "7a5ab22a-68ce-11ec-83d7-0242ac130002.pdf",
-        "7a5ab22a-68ce-11ec-83d7-0242ac130002.txt",
+        "invalid_uuid.png",
     ],
 )
 def test_validate_img_name_with_invalid_name(name: str):
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, ValueError)):
         Image.validate_file_name(name)
 
 
@@ -149,13 +150,12 @@ def test_validate_audio_name_with_invalid_name(name: str):
 def test_audio_from_nd_array(
     sample_audio_data: np.ndarray[Any, Any],
 ):
-    nd_audio = Audio.from_ndarray(sample_audio_data, 1)
+    nd_audio = Audio.from_ndarray(sample_audio_data, 16000)
     assert isinstance(nd_audio, Audio)
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize(
-    "name, new_ext, encoding",
+    "name, encoding, new_ext",
     [
         ("7a5ab22a-68ce-11ec-83d7-0242ac130002.wav", Ext.WAV, Ext.MP3),
         ("7a5ab22a-68ce-11ec-83d7-0242ac130002.mp3", Ext.MP3, Ext.WAV),
@@ -163,9 +163,9 @@ def test_audio_from_nd_array(
     ],
 )
 def test_audio_convert(
-    name: str, encoding: Ext, new_ext: Ext, sample_nd_array_data: np.ndarray[Any, Any]
+    name: str, encoding: Ext, new_ext: Ext, sample_audio_data: np.ndarray[Any, Any]
 ):
-    audio = Audio(file_name=name, obj_ext=encoding, val=sample_nd_array_data.tobytes())
+    audio = Audio(file_name=name, obj_ext=encoding, val=sample_audio_data.tobytes())
     assert isinstance(audio.convert_to(new_ext), Audio)  # type: ignore
 
 
