@@ -1,10 +1,13 @@
 .PHONY: setup lint format
 
 setup:
-	./scripts/setup.sh
+	@./scripts/setup.sh
 
 lint:
-	ruff check .
+	@ruff check .
+
+test:
+	@pytest .
 
 format:
-	ruff format .
+	@ruff format .
