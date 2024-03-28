@@ -1,17 +1,9 @@
-name: SDK CI/CD
+name: Run pytest
 
-on:
-  push:
-    branches-ignore:    
-      - 'main'
-  pull_request:
-    branches:
-      - main
-    types:
-      - closed
+on: [push]
 
 jobs:
-  lint-and-format:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,12 +24,5 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Check Linting
-        run: ruff check
-
-      - name: Check Formatting
-        run: ruff format --check
-
-      - name: Build SDK package
-        if: github.event.pull_request.merged == true
-        run: poetry build
+      - name: Run test
+        run: make test
