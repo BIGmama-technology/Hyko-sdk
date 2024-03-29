@@ -100,9 +100,6 @@ class ToolkitBase:
                 f"Failed to write to hyko db. Error code {response.status_code}"
             )
 
-    def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.write(host, username, password)
-
 
 class ToolkitFunction(ToolkitBase, FastAPI):
     def __init__(
@@ -257,3 +254,6 @@ class ToolkitAPI(ToolkitBase):
         validated_params = self.params_model(**params)
 
         return self.call(validated_inputs, validated_params)
+
+    def deploy(self, host: str, username: str, password: str):
+        self.write(host, username, password)

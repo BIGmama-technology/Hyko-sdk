@@ -3,7 +3,7 @@ import unittest.mock as mock
 import pytest
 from pydantic import BaseModel
 
-from hyko_sdk.definitions import ToolkitBase
+from hyko_sdk.definitions import ToolkitBase, ToolkitFunction
 from hyko_sdk.models import (
     HykoJsonSchema,
     MetaDataBase,
@@ -105,3 +105,57 @@ def test_write(mock_post: mock.MagicMock, sample_iop_data: BaseModel):
 
     with pytest.raises(BaseException):  # noqa: B017
         toolkit_base.write("test", "user", "pass")
+
+
+def test_build_with_invalid_dockerfile_path():
+    toolkit_function = ToolkitFunction(
+        name="test_function",
+        task="task",
+        description="Description",
+    )
+
+    with pytest.raises(BaseException):  # noqa: B017
+        toolkit_function.build(dockerfile_path="invalid/path")
+
+
+def test_build():
+    toolkit_function = ToolkitFunction(
+        name="test_function", task="task", description="Description"
+    )
+
+    toolkit_function.image_name = "test_image_name"
+    dockerfile_path = "Dockerfile"
+    toolkit_function.build(dockerfile_path=dockerfile_path)
+
+    assert isinstance(toolkit_function.size, int)
+
+
+def test_push():
+    toolkit_function = ToolkitFunction(
+        name="test_function",
+        task="task",
+        description="Description",
+    )
+    toolkit_function.image_name = "none_existing_image"
+
+    with pytest.raises(BaseException):  # noqa: B017
+        toolkit_function.push()
+
+
+def test_function_dump_metadata(sample_iop_data: BaseModel):
+    toolkit_function = ToolkitFunction(
+        name="test_function",
+        task="task",
+        description="Description",
+    )
+
+    toolkit_function.set_input(sample_iop_data)  # type: ignore
+    toolkit_function.set_output(sample_iop_data)  # type: ignore
+    toolkit_function.set_param(sample_iop_data)  # type: ignore
+
+    toolkit_function.image_name = "test_image"
+    toolkit_function.size = 1024
+
+    dumped_meta_data = toolkit_function.dump_metadata()
+
+    assert isinstance(dumped_meta_data, str)
