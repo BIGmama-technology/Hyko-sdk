@@ -9,8 +9,8 @@ lint:
 test:
 	@pytest .
 
-test: @docker compose -f docker-compose.test.yml up --build --exit-code-from hyko_sdk_test
-
+test: 
+	@docker compose -f docker-compose.test.yml up --build --exit-code-from hyko_sdk_test
 
 
 format:
