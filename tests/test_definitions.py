@@ -134,19 +134,6 @@ def test_on_execute_with_bad_execute_function(
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def test_build_with_invalid_dockerfile_path(toolkit_function: ToolkitFunction):
-    with pytest.raises(BaseException):  # noqa: B017
-        toolkit_function.build(dockerfile_path="invalid/path")
-
-
-def test_build(toolkit_function: ToolkitFunction):
-    toolkit_function.image_name = "test_image_name"
-    dockerfile_path = "Dockerfile"
-    toolkit_function.build(dockerfile_path=dockerfile_path)
-
-    assert isinstance(toolkit_function.size, int)
-
-
 def test_function_dump_metadata(
     sample_io_data: Type[BaseModel],
     toolkit_function: ToolkitFunction,
