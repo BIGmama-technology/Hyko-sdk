@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  hyko_sdk_test:
+    command: pytest -s -W ignore::Warning 
+    container_name: hyko_sdk_test
+    restart: no
+    env_file:
+      - .test.env
+    build:
+      context: backend
+      target: base
+    
