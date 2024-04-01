@@ -151,13 +151,17 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         self.image_name = (
             f"{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
         )
-        self.absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
-        self.docker_context = kwargs.get("docker_context")
-        dockerfile_path = kwargs.get("dockerfile_path")
 
+        absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
+        assert absolute_dockerfile_path, "absolute docker file path missing"
+        self.absolute_dockerfile_path = absolute_dockerfile_path
+
+        docker_context = kwargs.get("docker_context")
+        assert docker_context, "docker context path missing"
+        self.docker_context = docker_context
+
+        dockerfile_path = kwargs.get("dockerfile_path")
         assert dockerfile_path, "docker file path missing"
-        assert self.absolute_dockerfile_path, "absolute docker file path missing"
-        assert self.docker_context, "docker context path missing"
 
         self.build(dockerfile_path)
         self.write(
