@@ -14,7 +14,7 @@ from hyko_sdk.utils import to_friendly_types
 
 @pytest.fixture
 def sample_call_fn_with_params():
-    def test_call(inputs: Dict[str, Any], outputs: Dict[str, Any]):
+    def test_call(inputs: Dict[str, Any], params: Dict[str, Any]):
         return "test call"
 
     return test_call
