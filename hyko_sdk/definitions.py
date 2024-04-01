@@ -152,15 +152,10 @@ class ToolkitFunction(ToolkitBase, FastAPI):
             f"{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
         )
 
-        absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
-        assert absolute_dockerfile_path, "absolute docker file path missing"
-        self.absolute_dockerfile_path = absolute_dockerfile_path
-
-        docker_context = kwargs.get("docker_context")
-        assert docker_context, "docker context path missing"
-        self.docker_context = docker_context
-
+        self.absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
+        self.docker_context = kwargs.get("docker_context")
         dockerfile_path = kwargs.get("dockerfile_path")
+
         assert dockerfile_path, "docker file path missing"
 
         self.build(dockerfile_path)
@@ -172,6 +167,10 @@ class ToolkitFunction(ToolkitBase, FastAPI):
 
     def dump_metadata(self) -> str:
         base_metadata = self.get_base_metadata()
+
+        assert self.absolute_dockerfile_path, "absolute docker file path missing"
+        assert self.docker_context, "docker context path missing"
+
         metadata = FunctionMetaData(
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
@@ -219,6 +218,10 @@ class ToolkitModel(ToolkitFunction):
 
     def dump_metadata(self) -> str:
         base_metadata = self.get_base_metadata()
+
+        assert self.absolute_dockerfile_path, "absolute docker file path missing"
+        assert self.docker_context, "docker context path missing"
+
         metadata = ModelMetaData(
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
