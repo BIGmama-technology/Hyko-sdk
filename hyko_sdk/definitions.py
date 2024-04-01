@@ -76,11 +76,9 @@ class ToolkitBase:
             outputs=self.outputs,
         )
 
-    def dump_metadata(
-        self,
-    ) -> str:
+    def dump_metadata(self) -> str:
         metadata = MetaDataBase(
-            **self.get_base_metadata().model_dump(exclude_none=True),
+            **self.get_base_metadata().model_dump(exclude_none=True)
         )
         return metadata.model_dump_json(
             exclude_none=True,
@@ -149,25 +147,24 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         image = client.images.get(self.image_name)  # type: ignore
         self.size: int = image.attrs["Size"]  # type: ignore
 
-    def push(self):
-        try:
-            subprocess.run(
-                f"docker push {self.image_name}".split(" "),
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            raise BaseException(
-                "Failed to push to docker registry.",
-            ) from e
-
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.image_name = f"registry.{host}/{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
+        self.image_name = (
+            f"{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
+        )
+        self.absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
+        self.docker_context = kwargs.get("docker_context")
         dockerfile_path = kwargs.get("dockerfile_path")
+
         assert dockerfile_path, "docker file path missing"
+        assert self.absolute_dockerfile_path, "absolute docker file path missing"
+        assert self.docker_context, "docker context path missing"
 
         self.build(dockerfile_path)
-        self.push()
-        self.write(host, username, password)
+        self.write(
+            host,
+            username,
+            password,
+        )
 
     def dump_metadata(self) -> str:
         base_metadata = self.get_base_metadata()
@@ -175,6 +172,8 @@ class ToolkitFunction(ToolkitBase, FastAPI):
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
             size=self.size,
+            dockerfile_path=self.absolute_dockerfile_path,
+            docker_context=self.docker_context,
         )
         return metadata.model_dump_json(
             exclude_none=True,
@@ -221,6 +220,8 @@ class ToolkitModel(ToolkitFunction):
             image=self.image_name,
             startup_params=self.startup_params,
             size=self.size,
+            dockerfile_path=self.absolute_dockerfile_path,
+            docker_context=self.docker_context,
         )
         return metadata.model_dump_json(exclude_none=True, by_alias=True)
 

@@ -1,4 +1,4 @@
-name: SDK CI/CD
+name: housekeeping
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Set up Python
@@ -32,12 +32,12 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Check Linting
+      - name: Check linting
         run: ruff check
 
-      - name: Check Formatting
+      - name: Check formatting
         run: ruff format --check
 
-      - name: Build SDK package
+      - name: Build python SDK package
         if: github.event.pull_request.merged == true
         run: poetry build
