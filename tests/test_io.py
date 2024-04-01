@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from PIL import Image as PIL_Image
 
-from hyko_sdk.io import CSV, PDF, Audio, Image, Video
+from hyko_sdk.io import PDF, Audio, Image, Video
 from hyko_sdk.models import Ext
 
 
@@ -226,39 +226,3 @@ def test_validate_pdf_name(name: str):
 def test_validate_pdf_name_with_invalid_name(name: str):
     with pytest.raises(AssertionError):
         PDF.validate_file_name(name)
-
-
-############ CSV Tests #######################
-@pytest.mark.parametrize(
-    "name, encoding",
-    [
-        ("7a5ab22a-68ce-11ec-83d7-0242ac130002.csv", Ext.CSV),
-    ],
-)
-def test_validate_csv_object(name: str, encoding: Ext):
-    csv = CSV(file_name=name, obj_ext=encoding)
-    validated_csv = CSV.validate_object(csv)
-    assert isinstance(validated_csv, CSV)
-    assert validated_csv.file_name == csv.file_name
-
-
-@pytest.mark.parametrize(
-    "name",
-    [
-        "7a5ab22a-68ce-11ec-83d7-0242ac130002.csv",
-    ],
-)
-def test_validate_csv_name(name: str):
-    validated_csv = CSV.validate_file_name(name)
-    assert isinstance(validated_csv, CSV)
-
-
-@pytest.mark.parametrize(
-    "name",
-    [
-        "7a5ab22a-68ce-11ec-83d7-0242ac130002.mp4",
-    ],
-)
-def test_validate_csv_name_with_invalid_name(name: str):
-    with pytest.raises(AssertionError):
-        CSV.validate_file_name(name)
