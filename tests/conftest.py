@@ -1,30 +1,119 @@
 from enum import Enum
-from typing import Type
+from typing import Any, Dict, Type
 
 import numpy as np
 import PIL.Image as PIL_Image
 import pytest
 from pydantic import BaseModel, Field
 
-from hyko_sdk.io import Image
+from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
+from hyko_sdk.io import Audio, Image, Video
 from hyko_sdk.models import CoreModel, HykoJsonSchema
 from hyko_sdk.utils import to_friendly_types
 
 
 @pytest.fixture
-def sample_iop_data_json_schema(sample_iop_data: Type[BaseModel]):
-    return HykoJsonSchema(
-        **sample_iop_data.model_json_schema(),
-        friendly_types=to_friendly_types(sample_iop_data),
+def sample_call_fn_with_params():
+    def test_call(inputs: Dict[str, Any], outputs: Dict[str, Any]):
+        return "test call"
+
+    return test_call
+
+
+@pytest.fixture
+def sample_call_fn():
+    def test_call():
+        return "test call"
+
+    return test_call
+
+
+@pytest.fixture
+def base_model_child():
+    class BaseModelChild(BaseModel):
+        key: str
+
+    return BaseModelChild
+
+
+@pytest.fixture
+def execute():
+    async def execute(inputs: BaseModel, params: BaseModel) -> BaseModel:
+        class Output(BaseModel):
+            result: str
+
+        return Output(result="success")
+
+    return execute
+
+
+@pytest.fixture
+def bad_execute():
+    async def bad_execute(inputs: BaseModel, params: BaseModel) -> BaseModel:
+        raise Exception("Bad execute")
+
+    return bad_execute
+
+
+@pytest.fixture
+def startup():
+    async def startup(start_params: BaseModel):
+        pass
+
+    return startup
+
+
+@pytest.fixture
+def toolkit_base():
+    return ToolkitBase(name="Test Toolkit", task="Testing", desc="A test toolkit base")
+
+
+@pytest.fixture
+def toolkit_function():
+    return ToolkitFunction(
+        name="test_function", task="task", description="A test function"
     )
 
 
 @pytest.fixture
-def sample_iop_data():
+def toolkit_model():
+    return ToolkitModel(
+        name="test_function",
+        task="task",
+        description="Description",
+    )
+
+
+@pytest.fixture
+def toolkit_api():
+    return ToolkitAPI(name="test", task="task", description="Description")
+
+
+@pytest.fixture
+def sample_iop_data_json_schema(sample_io_data: Type[BaseModel]):
+    return HykoJsonSchema(
+        **sample_io_data.model_json_schema(),
+        friendly_types=to_friendly_types(sample_io_data),
+    )
+
+
+@pytest.fixture
+def sample_io_data():
     class IOP(CoreModel):
-        input_image: Image = Field(..., description="IOP image")
+        sample_io_image: Image = Field(..., description="IOP image")
+        sample_io_audio: Audio = Field(..., description="IOP image")
+        sample_io_video: Video = Field(..., description="IOP image")
 
     return IOP
+
+
+@pytest.fixture
+def sample_param_data():
+    class Param(CoreModel):
+        min: int
+        max: int
+
+    return Param
 
 
 # io_tests fixtures
