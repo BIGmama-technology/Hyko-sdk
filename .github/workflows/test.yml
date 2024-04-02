@@ -32,8 +32,8 @@ jobs:
 
       - name: Run tests
         run: |
-          mkdir /storage
-          pytest --cov=./hyko_sdk --cov-report=xml -W ignore::Warning
+          sudo mkdir /storage
+          sudo pytest --cov=./hyko_sdk --cov-report=xml -W ignore::Warning
       
       - name: Generate coverage badge
         run: genbadge coverage -i coverage.xml -o reports/coverage/coverage-badge.svg
