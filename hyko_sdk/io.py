@@ -17,7 +17,7 @@ from pydantic_core import core_schema
 
 from .models import Ext
 
-GLOBAL_STORAGE_PATH = "storage"
+GLOBAL_STORAGE_PATH = "/storage"
 
 
 class HykoBaseType:
