@@ -10,5 +10,36 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Run test
-        run: make test
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.6
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with: 
+          version: 1.6.1
+          virtualenvs-create: false
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Install genbadge
+        run: poetry add genbadge
+
+      - name: Run tests
+        run: pytest --cov=./hyko_sdk --cov-report=xml 
+      
+      - name: Generate coverage badge
+        run: genbadge coverage -i coverage.xml -o reports/coverage/coverage-badge.svg
+
+      - name: Commit
+        uses: devops-infra/action-commit-push@master
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          add_timestamp: true
+          commit_prefix: "[AUTO]"
+          commit_message: "update test coverage badge"
+          force: false
+          target_branch: update/version
+  
