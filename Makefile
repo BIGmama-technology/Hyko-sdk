@@ -1,7 +1,12 @@
 .PHONY: setup lint format
 
-setup:
-	./scripts/setup.sh
+.PHONY: setup
+setup: ## - Setup the repository
+	@echo "Setting up the sdk..."
+	@pyenv install || true && \
+		poetry install && \
+		poetry run pre-commit install --hook-type pre-commit --hook-type pre-push && \
+		poetry run gitlint install-hook || true
 
 lint:
 	ruff check .
