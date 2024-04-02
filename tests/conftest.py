@@ -38,13 +38,13 @@ def base_model_child():
 
 @pytest.fixture
 def execute():
-    async def execute(inputs: BaseModel, params: BaseModel) -> BaseModel:
+    async def execute_fn(inputs: BaseModel, params: BaseModel) -> BaseModel:
         class Output(BaseModel):
             result: str
 
         return Output(result="success")
 
-    return execute
+    return execute_fn
 
 
 @pytest.fixture
@@ -99,12 +99,12 @@ def sample_iop_data_json_schema(sample_io_data: Type[BaseModel]):
 
 @pytest.fixture
 def sample_io_data():
-    class IOP(CoreModel):
-        sample_io_image: Image = Field(..., description="IOP image")
-        sample_io_audio: Audio = Field(..., description="IOP image")
-        sample_io_video: Video = Field(..., description="IOP image")
+    class IO(CoreModel):
+        sample_io_image: Image = Field(..., description="IO image")
+        sample_io_audio: Audio = Field(..., description="IO audio")
+        sample_io_video: Video = Field(..., description="IO video")
 
-    return IOP
+    return IO
 
 
 @pytest.fixture

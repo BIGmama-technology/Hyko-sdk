@@ -41,10 +41,10 @@ def test_toolkit_base_set_param(
     sample_iop_data_json_schema: HykoJsonSchema,
     toolkit_base: ToolkitBase,
 ):
-    output = toolkit_base.set_output(sample_io_data)
-    assert isinstance(toolkit_base.outputs, HykoJsonSchema)
-    assert output == sample_io_data
-    assert toolkit_base.outputs == sample_iop_data_json_schema
+    param = toolkit_base.set_param(sample_io_data)
+    assert isinstance(toolkit_base.params, HykoJsonSchema)
+    assert param == sample_io_data
+    assert toolkit_base.params == sample_iop_data_json_schema
 
 
 def test_get_base_metadata(
