@@ -10,33 +10,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Setup ffmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11.6
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with: 
-          version: 1.6.1
-          virtualenvs-create: false
-
-      - name: Install dependencies
-        run: poetry install
+          cache: 'pip'
 
       - name: Install genbadge
-        run: poetry add "genbadge[coverage]"
+        run:  pip install "genbadge[coverage]"
 
       - name: Run tests
-        run: |
-          sudo mkdir /storage
-          sudo pytest --cov=./hyko_sdk --cov-report=xml -W ignore::Warning
-      
+        run:  make test      
+
       - name: Generate coverage badge
-        run: genbadge coverage -i coverage.xml -o reports/coverage/coverage-badge.svg
+        run: genbadge coverage -i reports/coverage.xml -o reports/coverage-badge.svg
 
       - name: Commit
         uses: devops-infra/action-commit-push@master
