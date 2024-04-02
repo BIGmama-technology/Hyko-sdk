@@ -10,6 +10,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Setup ffmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -25,10 +28,12 @@ jobs:
         run: poetry install
 
       - name: Install genbadge
-        run: poetry add genbadge
+        run: poetry add "genbadge[coverage]"
 
       - name: Run tests
-        run: pytest --cov=./hyko_sdk --cov-report=xml 
+        run: |
+          mkdir /storage
+          pytest --cov=./hyko_sdk --cov-report=xml -W ignore::Warning
       
       - name: Generate coverage badge
         run: genbadge coverage -i coverage.xml -o reports/coverage/coverage-badge.svg
