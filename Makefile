@@ -9,7 +9,7 @@ setup: ## - Setup the repository
 		poetry run gitlint install-hook || true
 
 lint:
-	ruff check .
+	poetry run ruff check .
 
 format:
-	ruff format .
+	poetry run ruff format .
