@@ -33,5 +33,5 @@ jobs:
           commit_prefix: "[AUTO]"
           commit_message: "update test coverage badge"
           force: false
-          target_branch: update/version
+          target_branch: ${GITHUB_REF##*/}
   
