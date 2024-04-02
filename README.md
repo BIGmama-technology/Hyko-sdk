@@ -5,40 +5,57 @@
 # Hyko python SDK
 ## Table of contents
 
+- [Description](#description)
+- [Definitions](#definitions)
+- [Getting Started](#getting-started)
+
 ## Description 
-[Hyko python sdk](https://github.com/BIGmama-technology/Hyko-sdk) is a python package that allows you to define functions/models and APIs used inside [Hyko toolkit](https://github.com/BIGmama-technology/Hyko-toolkit).
 
-under `hyko_sdk/definitions.py` we find the classes `ToolkitFunction` `ToolkitModel` and `ToolkitAPI` which inherit from the class `ToolkitBase`.
+Hyko sdk is a python package that allows you to define functions/models and APIs used inside [Hyko toolkit](https://github.com/BIGmama-technology/Hyko-toolkit).
 
-the job of these classes is to define the `deploy` function which is the routine on how to check the coherency of the function and write its metadata to hyko db. 
+## Definitions
 
-these classes also define the following decorators :
+In the `hyko_sdk/definitions.py` module, we encounter three fundamental base classes collectively referred to as **definitions**:
 
-`@set_input` `@set_output` and `@set_param`  which decorates a pydantic model of the inputs, params and outputs of the node respectively
+- `ToolkitFunction`: This serves as the base class for all functions within the Hyko Toolkit repository.
+- `ToolkitModel`: As the base class for all models within the Hyko Toolkit repository.
+- `ToolkitAPI`: Serving as the base class for all APIs within the Hyko Toolkit repository.
 
-- ToolkitFunction as well defines :
-`@on_execute` which decorates the execution function
+The primary responsibility of these classes is to define the `deploy` function, which orchestrates the process of verifying the coherence of the function and subsequently writing its metadata to the Hyko database.
 
-- ToolkitModel inherit from ToolkitFunction as well defines :
-`@on_startup` which decorates the startup function of the model (e.g. loading the weights)
+Additionally, these classes introduce several decorators:
 
-`@set_startup_params` which decorates the startup params pydantic model
- 
-`@on_shutdown` which decorate the shutdown function
+- `@set_input`, `@set_output`, and `@set_param`: These decorators annotate the Pydantic model representing the inputs, outputs, and parameters of the node, respectively.
+
+- Specifically, `ToolkitFunction` also introduces:
+  - `@on_execute`: This decorator pertains to the execution function.
+
+- On the other hand, `ToolkitModel`, inheriting from `ToolkitFunction`, introduces:
+  - `@on_startup`: This decorator concerns the startup function of the model, such as loading weights.
+  - `@set_startup_params`: Decorating the Pydantic model for startup parameters.
+  - `@on_shutdown`: This decorator addresses the shutdown function.
 
 > example of usage can be found in [Hyko toolkit](https://github.com/BIGmama-technology/Hyko-toolkit)
 
-## Dev requirements
+## Getting started
+
+1. Ensure you have Poetry and pyenv installed on your system. You can refer to the following links for installation guidance:
+
 - [Poetry](https://python-poetry.org/docs/#installation)
 - [Pyenv](https://github.com/pyenv/pyenv)
 
-Clone this repository
-```bash
-git clone git@github.com:BIGmama-technology/Hyko-sdk.git
-cd Hyko-sdk
-```
+2. Clone the repository:
 
-Run setup script
-```bash
-make setup
-```
+    ```bash
+    git clone https://github.com/BIGmama-technology/Hyko-sdk.git sdk
+    ```
+
+    ```bash
+    cd sdk
+    ```
+
+3. Execute the setup script to install the Python version used with the Hyko Toolkit (3.11.6) and install the required dependencies using Poetry. This script also activates the new virtual environment.
+
+    ```bash
+    make setup
+    ```
