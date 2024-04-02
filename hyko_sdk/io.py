@@ -322,22 +322,3 @@ class PDF(HykoBaseType):
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
         return PDF(obj_ext=obj_ext, file_name=file_name)
-
-
-class CSV(HykoBaseType):
-    @staticmethod
-    def validate_object(val: "CSV"):
-        file_name = val.file_name
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
-        return CSV(obj_ext=obj_ext, file_name=file_name)
-
-    @staticmethod
-    def validate_file_name(file_name: str):
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
-        return CSV(obj_ext=obj_ext, file_name=file_name)

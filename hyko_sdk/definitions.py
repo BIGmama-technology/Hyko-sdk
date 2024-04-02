@@ -98,9 +98,6 @@ class ToolkitBase:
                 f"Failed to write to hyko db. Error code {response.status_code}"
             )
 
-    def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.write(host, username, password)
-
 
 class ToolkitFunction(ToolkitBase, FastAPI):
     def __init__(
@@ -154,13 +151,12 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         self.image_name = (
             f"{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
         )
+
         self.absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
         self.docker_context = kwargs.get("docker_context")
         dockerfile_path = kwargs.get("dockerfile_path")
 
         assert dockerfile_path, "docker file path missing"
-        assert self.absolute_dockerfile_path, "absolute docker file path missing"
-        assert self.docker_context, "docker context path missing"
 
         self.build(dockerfile_path)
         self.write(
@@ -266,3 +262,6 @@ class ToolkitAPI(ToolkitBase):
         validated_params = self.params_model(**params)
 
         return self.call(validated_inputs, validated_params)
+
+    def deploy(self, host: str, username: str, password: str):
+        self.write(host, username, password)
