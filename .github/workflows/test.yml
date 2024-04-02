@@ -25,17 +25,6 @@ jobs:
       - name: Generate coverage badge
         run: genbadge coverage -i reports/coverage.xml -o reports/coverage-badge.svg
 
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        id: extract_branch
-
-      - name: Commit
-        uses: devops-infra/action-commit-push@master
-        with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          commit_prefix: "[AUTO]"
-          commit_message: "update test coverage badge"
-          force: false
-          target_branch: ${{ steps.extract_branch.outputs.branch }}
+      - name: Commit and push new badge
+        uses: stefanzweifel/git-auto-commit-action@v5
   
