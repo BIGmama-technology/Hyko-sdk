@@ -1,9 +1,9 @@
 import io
 import os
-import subprocess
 from typing import Any, Optional, Self
 from uuid import UUID, uuid4
 
+import httpx
 import numpy as np
 import soundfile  # type: ignore
 from numpy.typing import NDArray
@@ -17,7 +17,17 @@ from pydantic_core import core_schema
 
 from .models import Ext
 
-GLOBAL_STORAGE_PATH = "/storage"
+
+class StorageConfig:
+    access_token: str
+    refresh_token: str
+    host: str
+
+    @classmethod
+    def configure(cls, access_token: str, refresh_token: str, host: str):
+        cls.access_token = access_token
+        cls.refresh_token = refresh_token
+        cls.host = host
 
 
 class HykoBaseType:
@@ -35,6 +45,15 @@ class HykoBaseType:
 
         self.file_name = file_name
 
+        self.client = httpx.Client(
+            base_url=f"https://api.{StorageConfig.host}",
+            verify=False if StorageConfig.host == "traefik.me" else True,
+            cookies={
+                "access_token": f"Bearer {StorageConfig.access_token}",
+                "refresh_token": f"Bearer {StorageConfig.refresh_token}",
+            },
+        )
+
         if val:
             self.save(val)
 
@@ -50,25 +69,17 @@ class HykoBaseType:
         return self.file_name
 
     def save(self, obj_data: bytes) -> None:
-        """Save obj to file system.
+        """Save obj to file system."""
 
-        Now its saving both preview and original;.
-        TODO: preview should be of less quality."""
+        file_tuple = (self.file_name, obj_data, "application/octet-stream")
 
-        with open(
-            os.path.join(GLOBAL_STORAGE_PATH, "preview_" + self.file_name), "wb"
-        ) as f:
-            f.write(obj_data)
-
-        with open(os.path.join(GLOBAL_STORAGE_PATH, self.file_name), "wb") as f:
-            f.write(obj_data)
+        self.client.post(url="/storage", files={"file": file_tuple})
 
     def get_data(self) -> bytes:
         """read from file system"""
-        with open(os.path.join(GLOBAL_STORAGE_PATH, self.file_name), "rb") as f:
-            obj = f.read()
+        res = self.client.get(url=f"/storage/{self.file_name}")
 
-        return obj
+        return res.content
 
     @classmethod
     def __get_pydantic_json_schema__(
@@ -239,19 +250,8 @@ class Audio(HykoBaseType):
             obj_ext=Ext.MP3,
         )
 
-    def convert_to(self, new_ext: Ext):
-        out = "audio_converted." + new_ext.value
-
-        subprocess.run(
-            f"ffmpeg -i {os.path.join(GLOBAL_STORAGE_PATH, self.file_name)} {out} -y".split(
-                " "
-            )
-        )
-        with open(out, "rb") as f:
-            data = f.read()
-        os.remove(out)
-
-        return Audio(val=data, obj_ext=new_ext)
+    def convert_to(self, new_ext: Ext) -> HykoBaseType:
+        raise NotImplementedError
 
     def to_ndarray(  # type: ignore
         self,

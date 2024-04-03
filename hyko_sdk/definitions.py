@@ -8,6 +8,8 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from hyko_sdk.io import StorageConfig
+
 from .models import (
     Category,
     FunctionMetaData,
@@ -114,7 +116,11 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         async def wrapper(
             inputs: InputsType,
             params: ParamsType,
+            access_token: str,
+            refresh_token: str,
+            host: str,
         ) -> JSONResponse:
+            StorageConfig.configure(access_token, refresh_token, host)
             try:
                 outputs = await f(inputs, params)
             except Exception as e:
