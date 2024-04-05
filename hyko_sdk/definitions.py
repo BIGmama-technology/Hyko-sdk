@@ -131,7 +131,8 @@ class ToolkitFunction(ToolkitBase, FastAPI):
 
             return JSONResponse(content=json.loads(outputs.model_dump_json()))
 
-        wrapper.__annotations__ = f.__annotations__
+        wrapper.__annotations__["inputs"] = f.__annotations__["inputs"]
+        wrapper.__annotations__["params"] = f.__annotations__["params"]
 
         return self.post("/execute")(wrapper)
 
