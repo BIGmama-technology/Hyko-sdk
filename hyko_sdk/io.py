@@ -46,8 +46,8 @@ class HykoBaseType:
         self.file_name = file_name
 
         self.client = httpx.Client(
-            base_url=f"https://api.{StorageConfig.host}",
-            verify=False if StorageConfig.host == "traefik.me" else True,
+            base_url=f"https://{StorageConfig.host}",
+            verify=False if StorageConfig.host == "api.traefik.me" else True,
             cookies={
                 "access_token": f"Bearer {StorageConfig.access_token}",
                 "refresh_token": f"Bearer {StorageConfig.refresh_token}",
