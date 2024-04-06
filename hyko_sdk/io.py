@@ -26,7 +26,6 @@ class HykoBaseType:
         self,
         obj_ext: Ext,
         file_name: Optional[str] = None,
-        val: Optional[bytes] = None,
     ):
         if not file_name:
             obj_id = uuid4()
@@ -34,17 +33,15 @@ class HykoBaseType:
 
         self.file_name = file_name
 
-        self.client = httpx.Client(
-            base_url=f"https://{StorageConfig.host}",
-            verify=False if StorageConfig.host == "api.traefik.me" else True,
+        self.client = httpx.AsyncClient(
+            base_url=f"http://{StorageConfig.host}",
+            verify=False,
             cookies={
                 "access_token": f"Bearer {StorageConfig.access_token}",
                 "refresh_token": f"Bearer {StorageConfig.refresh_token}",
             },
+            timeout=10,
         )
-
-        if val:
-            self.save(val)
 
     @staticmethod
     def validate_object(val: Any) -> Any:
@@ -57,13 +54,13 @@ class HykoBaseType:
     def get_name(self) -> str:
         return self.file_name
 
-    def save(self, obj_data: bytes) -> None:
+    async def save(self, obj_data: bytes) -> None:
         """Save obj to file system."""
         _, ext = os.path.splitext(self.file_name)
 
         file_tuple = (self.file_name, obj_data, extension_to_mimetype[ext.lstrip(".")])
 
-        res = self.client.post(url="/storage/", files={"file": file_tuple})
+        res = await self.client.post(url="/storage/", files={"file": file_tuple})
         if not res.is_success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -72,9 +69,13 @@ class HykoBaseType:
 
         self.file_name = res.json()
 
-    def get_data(self) -> bytes:
+    async def init_from_val(self, val: bytes):
+        await self.save(val)
+        return self
+
+    async def get_data(self) -> bytes:
         """read from file system"""
-        res = self.client.get(url=f"/storage/{self.file_name}")
+        res = await self.client.get(url=f"/storage/{self.file_name}")
 
         if not res.is_success:
             raise HTTPException(
@@ -201,19 +202,18 @@ class Image(HykoBaseType):
             obj_ext=encoding,
         )
 
-    def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
-        if self.get_data():
-            img_bytes_io = io.BytesIO(self.get_data())
-            img = PIL_Image.open(img_bytes_io)
-            img = np.asarray(img)
-            if keep_alpha_if_png:
-                return img
-            return img[..., :3]
-        else:
-            raise RuntimeError("Image decode error (Image data not loaded)")
+    async def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
+        data = await self.get_data()
+        img_bytes_io = io.BytesIO(data)
+        img = PIL_Image.open(img_bytes_io)
+        img = np.asarray(img)
+        if keep_alpha_if_png:
+            return img
+        return img[..., :3]
 
-    def to_pil(self) -> PIL_Image.Image:
-        img_bytes_io = io.BytesIO(self.get_data())
+    async def to_pil(self) -> PIL_Image.Image:
+        data = await self.get_data()
+        img_bytes_io = io.BytesIO(data)
         img = PIL_Image.open(img_bytes_io)
         return img
 
@@ -256,14 +256,14 @@ class Audio(HykoBaseType):
     def convert_to(self, new_ext: Ext) -> HykoBaseType:
         raise NotImplementedError
 
-    def to_ndarray(  # type: ignore
+    async def to_ndarray(  # type: ignore
         self,
         frame_offset: int = 0,
         num_frames: int = -1,
     ):
         new_audio = self.convert_to(Ext.MP3)
-
-        audio_readable = io.BytesIO(new_audio.get_data())
+        data = await new_audio.get_data()
+        audio_readable = io.BytesIO(data)
 
         with soundfile.SoundFile(audio_readable, "r") as file_:
             frames = file_._prepare_read(frame_offset, None, num_frames)  # type: ignore

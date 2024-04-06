@@ -26,7 +26,7 @@ OutputsType = TypeVar("OutputsType", bound="BaseModel")
 OnStartupFuncType = Callable[[ParamsType], Coroutine[Any, Any, None]]
 OnShutdownFuncType = Callable[[], Coroutine[Any, Any, None]]
 OnExecuteFuncType = Callable[[InputsType, ParamsType], Coroutine[Any, Any, OutputsType]]
-OnCallType = Callable[..., Any]
+OnCallType = Callable[..., Coroutine[Any, Any, OutputsType]]
 
 T = TypeVar("T", bound=Type[BaseModel])
 
@@ -267,10 +267,16 @@ class ToolkitAPI(ToolkitBase):
         )
         return model
 
-    def on_call(self, f: OnCallType):
+    def on_call(self, f: OnCallType[...]):
         self.call = f
 
-    def execute(self, inputs: dict[str, Any], params: dict[str, Any]) -> Any:
+    def execute(
+        self,
+        inputs: dict[str, Any],
+        params: dict[str, Any],
+        storage_config: StorageConfig,
+    ):
+        StorageConfig.configure(**storage_config.model_dump())
         validated_inputs = self.inputs_model(**inputs)
         validated_params = self.params_model(**params)
 
