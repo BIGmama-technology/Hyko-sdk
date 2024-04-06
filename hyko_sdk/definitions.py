@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from hyko_sdk.io import StorageConfig
+from hyko_sdk.models import StorageConfig
 
 from .models import (
     Category,
@@ -110,17 +110,23 @@ class ToolkitFunction(ToolkitBase, FastAPI):
     ):
         ToolkitBase.__init__(self, name, task, description)
         FastAPI.__init__(self)
+        self.configure()
+
         self.category = Category.FUNCTION
+
+    def configure(self):
+        async def wrapper(
+            storage_config: StorageConfig,
+        ):
+            StorageConfig.configure(**storage_config.model_dump())
+
+        return self.post("/configure")(wrapper)
 
     def on_execute(self, f: OnExecuteFuncType[InputsType, ParamsType, OutputsType]):
         async def wrapper(
             inputs: InputsType,
             params: ParamsType,
-            access_token: str,
-            refresh_token: str,
-            host: str,
         ) -> JSONResponse:
-            StorageConfig.configure(access_token, refresh_token, host)
             try:
                 outputs = await f(inputs, params)
             except Exception as e:
