@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 import httpx
 import numpy as np
 import soundfile  # type: ignore
+from fastapi import HTTPException, status
 from numpy.typing import NDArray
 from PIL import Image as PIL_Image
 from pydantic import (
@@ -15,19 +16,7 @@ from pydantic import (
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
-from .models import Ext
-
-
-class StorageConfig:
-    access_token: str
-    refresh_token: str
-    host: str
-
-    @classmethod
-    def configure(cls, access_token: str, refresh_token: str, host: str):
-        cls.access_token = access_token
-        cls.refresh_token = refresh_token
-        cls.host = host
+from .models import Ext, StorageConfig, extension_to_mimetype
 
 
 class HykoBaseType:
@@ -70,14 +59,28 @@ class HykoBaseType:
 
     def save(self, obj_data: bytes) -> None:
         """Save obj to file system."""
+        _, ext = os.path.splitext(self.file_name)
 
-        file_tuple = (self.file_name, obj_data, "application/octet-stream")
+        file_tuple = (self.file_name, obj_data, extension_to_mimetype[ext.lstrip(".")])
 
-        self.client.post(url="/storage", files={"file": file_tuple})
+        res = self.client.post(url="/storage/", files={"file": file_tuple})
+        if not res.is_success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"failed to write to storage. {res.text}",
+            )
+
+        self.file_name = res.json()
 
     def get_data(self) -> bytes:
         """read from file system"""
         res = self.client.get(url=f"/storage/{self.file_name}")
+
+        if not res.is_success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"failed to read from storage. {res.text}",
+            )
 
         return res.content
 
