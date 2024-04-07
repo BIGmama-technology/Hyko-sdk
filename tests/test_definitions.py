@@ -10,6 +10,7 @@ from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, Toolk
 from hyko_sdk.models import (
     HykoJsonSchema,
     MetaDataBase,
+    StorageConfig,
 )
 
 
@@ -201,8 +202,13 @@ def test_api_execute(
     toolkit_api.on_call(sample_call_fn_with_params)
 
     result = toolkit_api.execute(
-        base_model_child(key="key").model_dump(),
-        base_model_child(key="output").model_dump(),
+        inputs=base_model_child(key="key").model_dump(),
+        params=base_model_child(key="output").model_dump(),
+        storage_config=StorageConfig(
+            refresh_token="test",
+            access_token="test",
+            host="test",
+        ),
     )
 
     assert result == "test call"
