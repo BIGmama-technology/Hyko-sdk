@@ -8,21 +8,18 @@ from pydantic import BaseModel, Field
 
 from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
 from hyko_sdk.io import Audio, Image, Video
-from hyko_sdk.models import CoreModel, HykoJsonSchema
+from hyko_sdk.models import CoreModel, HykoJsonSchema, StorageConfig
 from hyko_sdk.utils import to_friendly_types
+
+
+@pytest.fixture(autouse=True)
+def setup_storage_config():
+    StorageConfig.configure("test", "test", "test")
 
 
 @pytest.fixture
 def sample_call_fn_with_params():
     def test_call(inputs: Dict[str, Any], params: Dict[str, Any]):
-        return "test call"
-
-    return test_call
-
-
-@pytest.fixture
-def sample_call_fn():
-    def test_call():
         return "test call"
 
     return test_call
