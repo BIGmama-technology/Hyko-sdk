@@ -176,7 +176,7 @@ class Image(HykoBaseType):
         return Image(obj_ext=obj_ext, file_name=file_name)
 
     @staticmethod
-    def from_ndarray(
+    async def from_ndarray(
         arr: np.ndarray[Any, Any],
         encoding: Ext = Ext.PNG,
     ) -> "Image":
@@ -184,22 +184,24 @@ class Image(HykoBaseType):
         img = PIL_Image.fromarray(arr)  # type: ignore
         img.save(file, format=encoding.value)
 
-        return Image(
-            val=file.getbuffer().tobytes(),
+        return await Image(
             obj_ext=encoding,
+        ).init_from_val(
+            val=file.getbuffer().tobytes(),
         )
 
     @staticmethod
-    def from_pil(
+    async def from_pil(
         img: PIL_Image.Image,
         encoding: Ext = Ext.PNG,
     ) -> "Image":
         file = io.BytesIO()
         img.save(file, format=encoding.value)
 
-        return Image(
-            val=file.getbuffer().tobytes(),
+        return await Image(
             obj_ext=encoding,
+        ).init_from_val(
+            val=file.getbuffer().tobytes(),
         )
 
     async def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
@@ -245,15 +247,16 @@ class Audio(HykoBaseType):
         return Audio(obj_ext=obj_ext, file_name=file_name)
 
     @staticmethod
-    def from_ndarray(arr: np.ndarray[Any, Any], sampling_rate: int) -> "Audio":
+    async def from_ndarray(arr: np.ndarray[Any, Any], sampling_rate: int) -> "Audio":
         file = io.BytesIO()
         soundfile.write(file, arr, samplerate=sampling_rate, format="MP3")  # type: ignore
-        return Audio(
-            val=file.getbuffer().tobytes(),
+        return await Audio(
             obj_ext=Ext.MP3,
+        ).init_from_val(
+            val=file.getbuffer().tobytes(),
         )
 
-    def convert_to(self, new_ext: Ext) -> HykoBaseType:
+    async def convert_to(self, new_ext: Ext) -> HykoBaseType:
         raise NotImplementedError
 
     async def to_ndarray(  # type: ignore
@@ -261,7 +264,7 @@ class Audio(HykoBaseType):
         frame_offset: int = 0,
         num_frames: int = -1,
     ):
-        new_audio = self.convert_to(Ext.MP3)
+        new_audio = await self.convert_to(Ext.MP3)
         data = await new_audio.get_data()
         audio_readable = io.BytesIO(data)
 
