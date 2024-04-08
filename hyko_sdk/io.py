@@ -1,8 +1,10 @@
+import asyncio
 import io
 import os
 from typing import Any, Optional, Self
 from uuid import UUID, uuid4
 
+import aiofiles
 import httpx
 import numpy as np
 import soundfile  # type: ignore
@@ -250,14 +252,45 @@ class Audio(HykoBaseType):
     async def from_ndarray(arr: np.ndarray[Any, Any], sampling_rate: int) -> "Audio":
         file = io.BytesIO()
         soundfile.write(file, arr, samplerate=sampling_rate, format="MP3")  # type: ignore
+
         return await Audio(
             obj_ext=Ext.MP3,
         ).init_from_val(
             val=file.getbuffer().tobytes(),
         )
 
-    async def convert_to(self, new_ext: Ext) -> HykoBaseType:
-        raise NotImplementedError
+    async def convert_to(self, new_ext: Ext):
+        # Use aiofiles for asynchronous file writing
+        async with aiofiles.open(self.file_name, mode="wb") as file:
+            await file.write(await self.get_data())
+
+        out = "audio_converted." + new_ext.value
+
+        # Run ffmpeg command asynchronously
+        process = await asyncio.create_subprocess_exec(
+            "ffmpeg",
+            "-i",
+            self.file_name,
+            out,
+            "-y",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        # Wait for the command to complete
+        await process.communicate()
+
+        # Use aiofiles for asynchronous file reading
+        async with aiofiles.open(out, mode="rb") as f:
+            data = await f.read()
+
+        # Clean up
+        os.remove(self.file_name)
+        os.remove(out)
+
+        # Return the new Audio instance
+        return await Audio(
+            obj_ext=new_ext,
+        ).init_from_val(val=data)
 
     async def to_ndarray(  # type: ignore
         self,
