@@ -260,7 +260,6 @@ class Audio(HykoBaseType):
         )
 
     async def convert_to(self, new_ext: Ext):
-        # Use aiofiles for asynchronous file writing
         async with aiofiles.open(self.file_name, mode="wb") as file:
             await file.write(await self.get_data())
 
@@ -276,18 +275,14 @@ class Audio(HykoBaseType):
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        # Wait for the command to complete
         await process.communicate()
 
-        # Use aiofiles for asynchronous file reading
         async with aiofiles.open(out, mode="rb") as f:
             data = await f.read()
 
-        # Clean up
         os.remove(self.file_name)
         os.remove(out)
 
-        # Return the new Audio instance
         return await Audio(
             obj_ext=new_ext,
         ).init_from_val(val=data)
