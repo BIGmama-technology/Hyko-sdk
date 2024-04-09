@@ -1,0 +1,11 @@
+services:
+  hyko_sdk_test:
+    command: python -m pytest -s -W ignore::Warning --cov=./hyko_sdk --cov-report=xml:reports/coverage.xml
+    container_name: hyko_sdk_test
+    restart: no
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./reports:/app/reports
+    

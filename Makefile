@@ -1,15 +1,14 @@
 .PHONY: setup lint format
 
-.PHONY: setup
-setup: ## - Setup the repository
-	@echo "Setting up the sdk..."
-	@pyenv install || true && \
-		poetry install && \
-		poetry run pre-commit install --hook-type pre-commit --hook-type pre-push && \
-		poetry run gitlint install-hook || true
+setup:
+	@./scripts/setup.sh
 
 lint:
-	poetry run ruff check .
+	@ruff check .
+
+test: 
+	@docker compose -f docker-compose.test.yml up --build --exit-code-from hyko_sdk_test
+
 
 format:
-	poetry run ruff format .
+	@ruff format .
