@@ -1,7 +1,11 @@
 .PHONY: setup lint format
 
 setup:
-	@./scripts/setup.sh
+	@echo "Setting up hyko python sdk..."
+	@pyenv install || true && \
+		poetry install && \
+		poetry run pre-commit install --hook-type pre-commit --hook-type pre-push && \
+		poetry run gitlint install-hook
 
 lint:
 	@ruff check .
