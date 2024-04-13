@@ -263,5 +263,5 @@ class ToolkitAPI(ToolkitBase):
 
         return self.call(validated_inputs, validated_params)
 
-    def deploy(self, host: str, username: str, password: str):
+    def deploy(self, host: str, username: str, password: str, **kwargs: Any):
         self.write(host, username, password)
