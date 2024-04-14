@@ -34,9 +34,10 @@ class HykoBaseType:
             file_name = str(obj_id) + "." + obj_ext.value
 
         self.file_name = file_name
+        self.cached_value = None
 
         self.client = httpx.AsyncClient(
-            base_url=f"http://{StorageConfig.host}",
+            base_url=f"https://{StorageConfig.host}",
             verify=False,
             cookies={
                 "access_token": f"Bearer {StorageConfig.access_token}",
@@ -57,7 +58,7 @@ class HykoBaseType:
         return self.file_name
 
     async def save(self, obj_data: bytes) -> None:
-        """Save obj to file system."""
+        """Save data to hyko storage."""
         _, ext = os.path.splitext(self.file_name)
 
         file_tuple = (self.file_name, obj_data, extension_to_mimetype[ext.lstrip(".")])
@@ -68,24 +69,26 @@ class HykoBaseType:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"failed to write to storage. {res.text}",
             )
-
         self.file_name = res.json()
 
     async def init_from_val(self, val: bytes):
+        self.cached_value = val
         await self.save(val)
         return self
 
     async def get_data(self) -> bytes:
-        """read from file system"""
-        res = await self.client.get(url=f"/storage/{self.file_name}")
+        """Get data from hyko storage, use cached value if possible."""
+        if not self.cached_value:
+            res = await self.client.get(url=f"/storage/{self.file_name}")
 
-        if not res.is_success:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"failed to read from storage. {res.text}",
-            )
+            if not res.is_success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"failed to read from storage. {res.text}",
+                )
+            self.cached_value = res.content
 
-        return res.content
+        return self.cached_value
 
     @classmethod
     def __get_pydantic_json_schema__(
