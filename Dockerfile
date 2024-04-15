@@ -32,7 +32,6 @@ ENV VIRTUAL_ENV=/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
-RUN mkdir /storage
 
 # Copy the backend source code to /app
 COPY ./hyko_sdk ./hyko_sdk

@@ -1,11 +1,14 @@
+import asyncio
 import io
 import os
-import subprocess
 from typing import Any, Optional, Self
 from uuid import UUID, uuid4
 
+import aiofiles
+import httpx
 import numpy as np
 import soundfile  # type: ignore
+from fastapi import HTTPException, status
 from numpy.typing import NDArray
 from PIL import Image as PIL_Image
 from pydantic import (
@@ -15,9 +18,7 @@ from pydantic import (
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
-from .models import Ext
-
-GLOBAL_STORAGE_PATH = "/storage"
+from .models import Ext, StorageConfig, extension_to_mimetype
 
 
 class HykoBaseType:
@@ -27,16 +28,23 @@ class HykoBaseType:
         self,
         obj_ext: Ext,
         file_name: Optional[str] = None,
-        val: Optional[bytes] = None,
     ):
         if not file_name:
             obj_id = uuid4()
             file_name = str(obj_id) + "." + obj_ext.value
 
         self.file_name = file_name
+        self.cached_value = None
 
-        if val:
-            self.save(val)
+        self.client = httpx.AsyncClient(
+            base_url=f"https://{StorageConfig.host}",
+            verify=False,
+            cookies={
+                "access_token": f"Bearer {StorageConfig.access_token}",
+                "refresh_token": f"Bearer {StorageConfig.refresh_token}",
+            },
+            timeout=10,
+        )
 
     @staticmethod
     def validate_object(val: Any) -> Any:
@@ -49,26 +57,38 @@ class HykoBaseType:
     def get_name(self) -> str:
         return self.file_name
 
-    def save(self, obj_data: bytes) -> None:
-        """Save obj to file system.
+    async def save(self, obj_data: bytes) -> None:
+        """Save data to hyko storage."""
+        _, ext = os.path.splitext(self.file_name)
 
-        Now its saving both preview and original;.
-        TODO: preview should be of less quality."""
+        file_tuple = (self.file_name, obj_data, extension_to_mimetype[ext.lstrip(".")])
 
-        with open(
-            os.path.join(GLOBAL_STORAGE_PATH, "preview_" + self.file_name), "wb"
-        ) as f:
-            f.write(obj_data)
+        res = await self.client.post(url="/storage/", files={"file": file_tuple})
+        if not res.is_success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"failed to write to storage. {res.text}",
+            )
+        self.file_name = res.json()
 
-        with open(os.path.join(GLOBAL_STORAGE_PATH, self.file_name), "wb") as f:
-            f.write(obj_data)
+    async def init_from_val(self, val: bytes):
+        self.cached_value = val
+        await self.save(val)
+        return self
 
-    def get_data(self) -> bytes:
-        """read from file system"""
-        with open(os.path.join(GLOBAL_STORAGE_PATH, self.file_name), "rb") as f:
-            obj = f.read()
+    async def get_data(self) -> bytes:
+        """Get data from hyko storage, use cached value if possible."""
+        if not self.cached_value:
+            res = await self.client.get(url=f"/storage/{self.file_name}")
 
-        return obj
+            if not res.is_success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"failed to read from storage. {res.text}",
+                )
+            self.cached_value = res.content
+
+        return self.cached_value
 
     @classmethod
     def __get_pydantic_json_schema__(
@@ -161,7 +181,7 @@ class Image(HykoBaseType):
         return Image(obj_ext=obj_ext, file_name=file_name)
 
     @staticmethod
-    def from_ndarray(
+    async def from_ndarray(
         arr: np.ndarray[Any, Any],
         encoding: Ext = Ext.PNG,
     ) -> "Image":
@@ -169,37 +189,38 @@ class Image(HykoBaseType):
         img = PIL_Image.fromarray(arr)  # type: ignore
         img.save(file, format=encoding.value)
 
-        return Image(
-            val=file.getbuffer().tobytes(),
+        return await Image(
             obj_ext=encoding,
+        ).init_from_val(
+            val=file.getbuffer().tobytes(),
         )
 
     @staticmethod
-    def from_pil(
+    async def from_pil(
         img: PIL_Image.Image,
         encoding: Ext = Ext.PNG,
     ) -> "Image":
         file = io.BytesIO()
         img.save(file, format=encoding.value)
 
-        return Image(
-            val=file.getbuffer().tobytes(),
+        return await Image(
             obj_ext=encoding,
+        ).init_from_val(
+            val=file.getbuffer().tobytes(),
         )
 
-    def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
-        if self.get_data():
-            img_bytes_io = io.BytesIO(self.get_data())
-            img = PIL_Image.open(img_bytes_io)
-            img = np.asarray(img)
-            if keep_alpha_if_png:
-                return img
-            return img[..., :3]
-        else:
-            raise RuntimeError("Image decode error (Image data not loaded)")
+    async def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
+        data = await self.get_data()
+        img_bytes_io = io.BytesIO(data)
+        img = PIL_Image.open(img_bytes_io)
+        img = np.asarray(img)
+        if keep_alpha_if_png:
+            return img
+        return img[..., :3]
 
-    def to_pil(self) -> PIL_Image.Image:
-        img_bytes_io = io.BytesIO(self.get_data())
+    async def to_pil(self) -> PIL_Image.Image:
+        data = await self.get_data()
+        img_bytes_io = io.BytesIO(data)
         img = PIL_Image.open(img_bytes_io)
         return img
 
@@ -231,36 +252,52 @@ class Audio(HykoBaseType):
         return Audio(obj_ext=obj_ext, file_name=file_name)
 
     @staticmethod
-    def from_ndarray(arr: np.ndarray[Any, Any], sampling_rate: int) -> "Audio":
+    async def from_ndarray(arr: np.ndarray[Any, Any], sampling_rate: int) -> "Audio":
         file = io.BytesIO()
         soundfile.write(file, arr, samplerate=sampling_rate, format="MP3")  # type: ignore
-        return Audio(
-            val=file.getbuffer().tobytes(),
+
+        return await Audio(
             obj_ext=Ext.MP3,
+        ).init_from_val(
+            val=file.getbuffer().tobytes(),
         )
 
-    def convert_to(self, new_ext: Ext):
+    async def convert_to(self, new_ext: Ext):
+        async with aiofiles.open(self.file_name, mode="wb") as file:
+            await file.write(await self.get_data())
+
         out = "audio_converted." + new_ext.value
 
-        subprocess.run(
-            f"ffmpeg -i {os.path.join(GLOBAL_STORAGE_PATH, self.file_name)} {out} -y".split(
-                " "
-            )
+        # Run ffmpeg command asynchronously
+        process = await asyncio.create_subprocess_exec(
+            "ffmpeg",
+            "-i",
+            self.file_name,
+            out,
+            "-y",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
-        with open(out, "rb") as f:
-            data = f.read()
+        await process.communicate()
+
+        async with aiofiles.open(out, mode="rb") as f:
+            data = await f.read()
+
+        os.remove(self.file_name)
         os.remove(out)
 
-        return Audio(val=data, obj_ext=new_ext)
+        return await Audio(
+            obj_ext=new_ext,
+        ).init_from_val(val=data)
 
-    def to_ndarray(  # type: ignore
+    async def to_ndarray(  # type: ignore
         self,
         frame_offset: int = 0,
         num_frames: int = -1,
     ):
-        new_audio = self.convert_to(Ext.MP3)
-
-        audio_readable = io.BytesIO(new_audio.get_data())
+        new_audio = await self.convert_to(Ext.MP3)
+        data = await new_audio.get_data()
+        audio_readable = io.BytesIO(data)
 
         with soundfile.SoundFile(audio_readable, "r") as file_:
             frames = file_._prepare_read(frame_offset, None, num_frames)  # type: ignore

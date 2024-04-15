@@ -1,15 +1,22 @@
 import unittest.mock as mock
-from typing import Any, Callable, Coroutine, Type
+from typing import Any, Coroutine, Type
 
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
-from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
+from hyko_sdk.definitions import (
+    OnCallType,
+    ToolkitAPI,
+    ToolkitBase,
+    ToolkitFunction,
+    ToolkitModel,
+)
 from hyko_sdk.models import (
     HykoJsonSchema,
     MetaDataBase,
+    StorageConfig,
 )
 
 
@@ -183,17 +190,10 @@ def test_model_on_startup(
     assert response.status_code != status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def test_api_on_call(toolkit_api: ToolkitAPI, sample_call_fn: Callable[[], str]):
-    toolkit_api.on_call(sample_call_fn)
-
-    assert toolkit_api.call == sample_call_fn
-    assert toolkit_api.call() == "test call"
-
-
 def test_api_execute(
     toolkit_api: ToolkitAPI,
     base_model_child: Type[BaseModel],
-    sample_call_fn_with_params: Callable[[], str],
+    sample_call_fn_with_params: OnCallType[...],
 ):
     toolkit_api.set_input(base_model_child)
     toolkit_api.set_param(base_model_child)
@@ -201,8 +201,13 @@ def test_api_execute(
     toolkit_api.on_call(sample_call_fn_with_params)
 
     result = toolkit_api.execute(
-        base_model_child(key="key").model_dump(),
-        base_model_child(key="output").model_dump(),
+        inputs=base_model_child(key="key").model_dump(),
+        params=base_model_child(key="output").model_dump(),
+        storage_config=StorageConfig(
+            refresh_token="test",
+            access_token="test",
+            host="test",
+        ),
     )
 
     assert result == "test call"

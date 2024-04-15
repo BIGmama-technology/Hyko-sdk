@@ -1,9 +1,13 @@
+import io
 from enum import Enum
 from typing import Any, Dict, Type
+from unittest import mock
 
 import numpy as np
-import PIL.Image as PIL_Image
+import PIL
+import PIL.Image
 import pytest
+from PIL.Image import Image as PILImage
 from pydantic import BaseModel, Field
 
 from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
@@ -13,16 +17,45 @@ from hyko_sdk.utils import to_friendly_types
 
 
 @pytest.fixture
-def sample_call_fn_with_params():
-    def test_call(inputs: Dict[str, Any], params: Dict[str, Any]):
-        return "test call"
-
-    return test_call
+def mock_post_success():
+    with mock.patch("httpx.AsyncClient.post") as mock_post:
+        # Setup a mock response object
+        mock_response = mock.Mock()
+        mock_response.is_success = True
+        mock_response.json = lambda: "test_filename"
+        mock_post.return_value = mock_response
+        yield mock_post
 
 
 @pytest.fixture
-def sample_call_fn():
-    def test_call():
+def mock_get_audio(sample_audio_data: np.ndarray[Any, Any]):
+    with mock.patch("httpx.AsyncClient.get") as mock_get:
+        # Setup a mock response object
+        mock_response = mock.Mock()
+        mock_response.is_success = True
+        mock_response.content = sample_audio_data.tobytes()
+        mock_get.return_value = mock_response
+        yield mock_get
+
+
+@pytest.fixture
+def mock_get_png(sample_pil_image_data: PILImage):
+    with mock.patch("httpx.AsyncClient.get") as mock_post:
+        # Setup a mock response object
+        file = io.BytesIO()
+        sample_pil_image_data.save(file, format="PNG")
+        img_byte = file.getvalue()
+
+        mock_response = mock.Mock()
+        mock_response.is_success = True
+        mock_response.content = img_byte
+        mock_post.return_value = mock_response
+        yield mock_post
+
+
+@pytest.fixture
+def sample_call_fn_with_params():
+    def test_call(inputs: Dict[str, Any], params: Dict[str, Any]):
         return "test call"
 
     return test_call
@@ -129,10 +162,10 @@ def sample_audio_data():
 
 
 @pytest.fixture
-def sample_pil_image_data() -> PIL_Image.Image:
+def sample_pil_image_data() -> PILImage:
     width, height = 100, 100
     nd_image = np.zeros((height, width, 3), dtype=np.uint8)
-    pil_image = PIL_Image.fromarray(nd_image)
+    pil_image = PIL.Image.fromarray(nd_image)
     return pil_image
 
 

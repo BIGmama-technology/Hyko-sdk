@@ -34,6 +34,28 @@ class Ext(str, Enum):
     WEBP = "webp"
 
 
+mimetype_to_extension = {
+    "text/plain": "txt",
+    "text/csv": "csv",
+    "application/pdf": "pdf",
+    "image/png": "png",
+    "image/jpeg": "jpeg",
+    "image/gif": "gif",
+    "image/bmp": "bmp",
+    "image/webp": "webp",
+    "audio/wav": "wav",
+    "audio/mpeg": "mp3",
+    "video/mp4": "mp4",
+    "video/vnd.avi": "avi",
+    "video/webm": "webm",
+    "video/mpeg": "mpeg",
+    "video/x-matroska": "mkv",
+    "video/quicktime": "mov",
+    "video/x-ms-wmv": "wmv",
+}
+extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}
+
+
 class IOPortType(str, Enum):
     BOOLEAN = "boolean"
     NUMBER = "number"
@@ -114,6 +136,23 @@ class APIMetaData(MetaDataBase):
     @property
     def image(self) -> str:
         return Category.API.value + "/" + self.task + "/" + self.name
+
+
+class StorageConfig(BaseModel):
+    refresh_token: str
+    access_token: str
+    host: str
+
+    @classmethod
+    def configure(
+        cls,
+        refresh_token: str,
+        access_token: str,
+        host: str,
+    ):
+        cls.access_token = access_token
+        cls.refresh_token = refresh_token
+        cls.host = host
 
 
 class CoreModel(BaseModel):

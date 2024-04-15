@@ -8,6 +8,8 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from hyko_sdk.models import StorageConfig
+
 from .models import (
     Category,
     FunctionMetaData,
@@ -24,7 +26,7 @@ OutputsType = TypeVar("OutputsType", bound="BaseModel")
 OnStartupFuncType = Callable[[ParamsType], Coroutine[Any, Any, None]]
 OnShutdownFuncType = Callable[[], Coroutine[Any, Any, None]]
 OnExecuteFuncType = Callable[[InputsType, ParamsType], Coroutine[Any, Any, OutputsType]]
-OnCallType = Callable[..., Any]
+OnCallType = Callable[..., Coroutine[Any, Any, OutputsType]]
 
 T = TypeVar("T", bound=Type[BaseModel])
 
@@ -108,7 +110,17 @@ class ToolkitFunction(ToolkitBase, FastAPI):
     ):
         ToolkitBase.__init__(self, name, task, description)
         FastAPI.__init__(self)
+        self.configure()
+
         self.category = Category.FUNCTION
+
+    def configure(self):
+        async def wrapper(
+            storage_config: StorageConfig,
+        ):
+            StorageConfig.configure(**storage_config.model_dump())
+
+        return self.post("/configure")(wrapper)
 
     def on_execute(self, f: OnExecuteFuncType[InputsType, ParamsType, OutputsType]):
         async def wrapper(
@@ -125,7 +137,8 @@ class ToolkitFunction(ToolkitBase, FastAPI):
 
             return JSONResponse(content=json.loads(outputs.model_dump_json()))
 
-        wrapper.__annotations__ = f.__annotations__
+        wrapper.__annotations__["inputs"] = f.__annotations__["inputs"]
+        wrapper.__annotations__["params"] = f.__annotations__["params"]
 
         return self.post("/execute")(wrapper)
 
@@ -254,10 +267,16 @@ class ToolkitAPI(ToolkitBase):
         )
         return model
 
-    def on_call(self, f: OnCallType):
+    def on_call(self, f: OnCallType[...]):
         self.call = f
 
-    def execute(self, inputs: dict[str, Any], params: dict[str, Any]) -> Any:
+    def execute(
+        self,
+        inputs: dict[str, Any],
+        params: dict[str, Any],
+        storage_config: StorageConfig,
+    ):
+        StorageConfig.configure(**storage_config.model_dump())
         validated_inputs = self.inputs_model(**inputs)
         validated_params = self.params_model(**params)
 
