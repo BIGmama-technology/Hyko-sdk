@@ -11,11 +11,13 @@ from pydantic import BaseModel
 from hyko_sdk.models import StorageConfig
 
 from .models import (
+    APIMetaData,
     Category,
     FunctionMetaData,
     HykoJsonSchema,
     MetaDataBase,
     ModelMetaData,
+    UtilsMetaData,
 )
 from .utils import to_friendly_types
 
@@ -285,8 +287,24 @@ class ToolkitAPI(ToolkitBase):
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
         self.write(host, username, password)
 
+    def dump_metadata(self) -> str:
+        metadata = APIMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
+        return metadata.model_dump_json(
+            exclude_none=True,
+            by_alias=True,
+        )
 
-class ToolkitUtil(ToolkitAPI):
+
+class ToolkitUtils(ToolkitAPI):
     def __init__(self, name: str, task: str, description: str):
         super().__init__(name=name, task=task, description=description)
         self.category = Category.UTILS
+
+    def dump_metadata(self) -> str:
+        metadata = UtilsMetaData(
+            **self.get_base_metadata().model_dump(exclude_none=True)
+        )
+        return metadata.model_dump_json(
+            exclude_none=True,
+            by_alias=True,
+        )

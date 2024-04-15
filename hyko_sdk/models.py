@@ -139,6 +139,13 @@ class APIMetaData(MetaDataBase):
         return Category.API.value + "/" + self.task + "/" + self.name
 
 
+class UtilsMetaData(MetaDataBase):
+    @computed_field
+    @property
+    def image(self) -> str:
+        return Category.UTILS.value + "/" + self.task + "/" + self.name
+
+
 class StorageConfig(BaseModel):
     refresh_token: str
     access_token: str
@@ -158,10 +165,3 @@ class StorageConfig(BaseModel):
 
 class CoreModel(BaseModel):
     pass
-
-
-class UTILSMetaData(MetaDataBase):
-    @computed_field
-    @property
-    def image(self) -> str:
-        return Category.UTILS.value + "/" + self.task + "/" + self.name
