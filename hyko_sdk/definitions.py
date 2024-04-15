@@ -284,3 +284,9 @@ class ToolkitAPI(ToolkitBase):
 
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
         self.write(host, username, password)
+
+
+class ToolkitUtil(ToolkitAPI):
+    def __init__(self, name: str, task: str, description: str):
+        super().__init__(name=name, task=task, description=description)
+        self.category = Category.UTILS
