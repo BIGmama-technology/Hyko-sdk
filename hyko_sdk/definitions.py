@@ -2,7 +2,6 @@ import json
 import subprocess
 from typing import Any, Callable, Coroutine, Type, TypeVar
 
-import docker  # type: ignore
 import httpx
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -156,10 +155,6 @@ class ToolkitFunction(ToolkitBase, FastAPI):
                 "Failed to build function docker image.",
             ) from e
 
-        client = docker.DockerClient(base_url="unix://var/run/docker.sock")  # type: ignore
-        image = client.images.get(self.image_name)  # type: ignore
-        self.size: int = image.attrs["Size"]  # type: ignore
-
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
         self.image_name = (
             f"{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
@@ -187,7 +182,6 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         metadata = FunctionMetaData(
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
-            size=self.size,
             dockerfile_path=self.absolute_dockerfile_path,
             docker_context=self.docker_context,
         )
@@ -239,7 +233,6 @@ class ToolkitModel(ToolkitFunction):
             **base_metadata.model_dump(exclude_none=True),
             image=self.image_name,
             startup_params=self.startup_params,
-            size=self.size,
             dockerfile_path=self.absolute_dockerfile_path,
             docker_context=self.docker_context,
         )

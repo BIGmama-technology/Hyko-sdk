@@ -114,7 +114,6 @@ class MetaDataBase(BaseModel):
 
 class FunctionMetaData(MetaDataBase):
     image: str
-    size: int
     dockerfile_path: str
     docker_context: str
 

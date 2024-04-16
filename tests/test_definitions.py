@@ -151,7 +151,6 @@ def test_function_dump_metadata(
     toolkit_function.set_param(sample_param_data)
 
     toolkit_function.image_name = "test_image"
-    toolkit_function.size = 1024
     toolkit_function.absolute_dockerfile_path = "Dockerfile"
     toolkit_function.docker_context = "."
 
