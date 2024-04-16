@@ -1,5 +1,40 @@
 # Changelog
 
+## [4.4.0](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.3.0...v4.4.0) (2024-04-15)
+
+
+### Features
+
+* add StorageConfig class ([3160792](https://github.com/BIGmama-technology/Hyko-sdk/commit/31607929e4428774dd5fd08f3cf65e134ff7417f))
+* add StorageConfig, ext_to_mimetype and mimetype_to_ext dicts ([a0e3f6a](https://github.com/BIGmama-technology/Hyko-sdk/commit/a0e3f6ae7c73c4c5370bc4e1ca6a3247b7e95026))
+* audio convert to is async ([b8a7b02](https://github.com/BIGmama-technology/Hyko-sdk/commit/b8a7b02d2003dd05633d10f65de6d7eedfe6df9f))
+* read and write should be async ([6223592](https://github.com/BIGmama-technology/Hyko-sdk/commit/62235928d12d5f9ae743ccac7748e5d38760e8bc))
+* update configure to use pydantic model ([7bc75a8](https://github.com/BIGmama-technology/Hyko-sdk/commit/7bc75a81f6dff4d590041f031464d56acb1fea6d))
+* update io utils to async ([f1788c0](https://github.com/BIGmama-technology/Hyko-sdk/commit/f1788c05df379d8fea6a2408d51673b1650e0ef0))
+
+
+### Bug Fixes
+
+* add /storage back to io.py ([426b779](https://github.com/BIGmama-technology/Hyko-sdk/commit/426b77937149f069372d84bfafe6c40ac54c3b74))
+* API deploy function raises en error since its missing kwargs ([9ab26e2](https://github.com/BIGmama-technology/Hyko-sdk/commit/9ab26e23b145d511b1f776095c09d2d84c95e715))
+* assert docker file path and context path are not None ([b51d733](https://github.com/BIGmama-technology/Hyko-sdk/commit/b51d733be535d118633cdbd880d98a3f3617577c))
+* EOF in badge ([bfea904](https://github.com/BIGmama-technology/Hyko-sdk/commit/bfea9040911bf35709631e781d2ed4cca4f17d5a))
+* fix bug in definitions ([c45ec2e](https://github.com/BIGmama-technology/Hyko-sdk/commit/c45ec2e27344f0b46aadffc5ce29c147166854c5))
+* fixed ToolkitApi deploy function ([838cdd8](https://github.com/BIGmama-technology/Hyko-sdk/commit/838cdd8e10e8cd351af0cd39fd96c60e33394705))
+* let backend handle full host ([177d39b](https://github.com/BIGmama-technology/Hyko-sdk/commit/177d39be83804f68d259a858d3b97eb2a1a755d2))
+* on execute test function signature ([cd03722](https://github.com/BIGmama-technology/Hyko-sdk/commit/cd037221df58f7a456ef08211b6e9f9b3d3801c4))
+* raise exceptions on failed write or read, use backend file uuid ([d15db0f](https://github.com/BIGmama-technology/Hyko-sdk/commit/d15db0fa66bb07294768fb20725cd1479c9cae0a))
+* remove docker commands, you shouldnt run docker inside docker ([cd8de31](https://github.com/BIGmama-technology/Hyko-sdk/commit/cd8de31a1b9f9c40f7ae5a41fa239634f0fbd7a3))
+* remove redundent test command in makefile ([daa0939](https://github.com/BIGmama-technology/Hyko-sdk/commit/daa09390122c274145a69f2e59c7762c074dad17))
+* remove unused .test.env ([2546368](https://github.com/BIGmama-technology/Hyko-sdk/commit/2546368e62ab226d89bb082ccadc324cfb2af005))
+* switch only inputs and params in annotation ([45309df](https://github.com/BIGmama-technology/Hyko-sdk/commit/45309dfeb75c9ceb37d0e5d57f8b569ae40bc84a))
+* we are using host not domain name ([c425ed4](https://github.com/BIGmama-technology/Hyko-sdk/commit/c425ed4afb8d773b553ce6e0d9d11c7ef162eabd))
+
+
+### Performance Improvements
+
+* cache data on save and get_data ([b52ec07](https://github.com/BIGmama-technology/Hyko-sdk/commit/b52ec07b688707474618d104887d4458507a75eb))
+
 ## [4.3.0](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.2.0...v4.3.0) (2024-03-27)
 
 
