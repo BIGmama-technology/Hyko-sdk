@@ -111,9 +111,13 @@ class MetaDataBase(BaseModel):
     inputs: Optional[HykoJsonSchema] = None
     outputs: Optional[HykoJsonSchema] = None
 
+    @computed_field
+    @property
+    def image(self) -> str:
+        return self.category.value + "/" + self.task + "/" + self.name
+
 
 class FunctionMetaData(MetaDataBase):
-    image: str
     dockerfile_path: str
     docker_context: str
 
