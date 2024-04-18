@@ -37,7 +37,7 @@ class HykoBaseType:
         self.cached_value = None
 
         self.client = httpx.AsyncClient(
-            base_url=f"https://{StorageConfig.host}",
+            base_url=StorageConfig.host,
             verify=False,
             cookies={
                 "access_token": f"Bearer {StorageConfig.access_token}",
