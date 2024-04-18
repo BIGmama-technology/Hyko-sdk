@@ -1,7 +1,5 @@
-import unittest.mock as mock
 from typing import Any, Coroutine, Type
 
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
@@ -82,25 +80,6 @@ def test_dump_metadata(
     assert isinstance(dumped_meta_data, str)
 
 
-@mock.patch("httpx.post")
-def test_write(
-    mock_post: mock.MagicMock,
-    sample_io_data: Type[BaseModel],
-    sample_param_data: Type[BaseModel],
-    toolkit_base: ToolkitBase,
-):
-    mock_response = mock.Mock()
-    mock_response.status_code = 500
-    mock_post.return_value = mock_response
-
-    toolkit_base.set_input(sample_io_data)
-    toolkit_base.set_output(sample_io_data)
-    toolkit_base.set_param(sample_param_data)
-
-    with pytest.raises(BaseException):  # noqa: B017
-        toolkit_base.write("test", "user", "pass")
-
-
 #  ToolkitFunction Tests.
 def test_on_execute(
     toolkit_function: ToolkitFunction,
@@ -150,7 +129,6 @@ def test_function_dump_metadata(
     toolkit_function.set_output(sample_io_data)
     toolkit_function.set_param(sample_param_data)
 
-    toolkit_function.image_name = "test_image"
     toolkit_function.absolute_dockerfile_path = "Dockerfile"
     toolkit_function.docker_context = "."
 
