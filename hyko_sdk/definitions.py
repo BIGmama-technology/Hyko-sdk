@@ -143,10 +143,6 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         return self.post("/execute")(wrapper)
 
     def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.image_name = (
-            f"{self.category.value}/{self.task.lower()}/{self.name.lower()}:latest"
-        )
-
         self.absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
         self.docker_context = kwargs.get("docker_context")
         dockerfile_path = kwargs.get("dockerfile_path")
