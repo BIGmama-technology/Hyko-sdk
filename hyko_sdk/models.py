@@ -100,6 +100,7 @@ class Category(str, Enum):
     MODEL = "models"
     FUNCTION = "functions"
     API = "apis"
+    UTILS = "utils"
 
 
 class MetaDataBase(BaseModel):
@@ -111,10 +112,13 @@ class MetaDataBase(BaseModel):
     inputs: Optional[HykoJsonSchema] = None
     outputs: Optional[HykoJsonSchema] = None
 
+    @computed_field
+    @property
+    def image(self) -> str:
+        return self.category.value + "/" + self.task + "/" + self.name
+
 
 class FunctionMetaData(MetaDataBase):
-    image: str
-    size: int
     dockerfile_path: str
     docker_context: str
 
@@ -132,10 +136,11 @@ class Method(str, Enum):
 
 
 class APIMetaData(MetaDataBase):
-    @computed_field
-    @property
-    def image(self) -> str:
-        return Category.API.value + "/" + self.task + "/" + self.name
+    pass
+
+
+class UtilsMetaData(MetaDataBase):
+    pass
 
 
 class StorageConfig(BaseModel):
