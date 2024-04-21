@@ -1,7 +1,6 @@
 import json
 from typing import Any, Callable, Coroutine, Type, TypeVar
 
-import httpx
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -87,19 +86,6 @@ class ToolkitBase:
             by_alias=True,
         )
 
-    def write(self, host: str, username: str, password: str):
-        response = httpx.post(
-            f"https://api.{host}/toolkit/write",
-            content=self.dump_metadata(),
-            auth=httpx.BasicAuth(username, password),
-            verify=False if host == "traefik.me" else True,
-        )
-
-        if response.status_code != 200:
-            raise BaseException(
-                f"Failed to write to hyko db. Error code {response.status_code}"
-            )
-
 
 class ToolkitFunction(ToolkitBase, FastAPI):
     def __init__(
@@ -107,8 +93,12 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         name: str,
         task: str,
         description: str,
+        absolute_dockerfile_path: str,
+        docker_context: str,
     ):
         ToolkitBase.__init__(self, name, task, description)
+        self.absolute_dockerfile_path = absolute_dockerfile_path
+        self.docker_context = docker_context
         FastAPI.__init__(self)
         self.configure()
 
@@ -142,19 +132,6 @@ class ToolkitFunction(ToolkitBase, FastAPI):
 
         return self.post("/execute")(wrapper)
 
-    def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.absolute_dockerfile_path = kwargs.get("absolute_dockerfile_path")
-        self.docker_context = kwargs.get("docker_context")
-        dockerfile_path = kwargs.get("dockerfile_path")
-
-        assert dockerfile_path, "docker file path missing"
-
-        self.write(
-            host,
-            username,
-            password,
-        )
-
     def dump_metadata(self) -> str:
         base_metadata = self.get_base_metadata()
 
@@ -171,10 +148,32 @@ class ToolkitFunction(ToolkitBase, FastAPI):
             by_alias=True,
         )
 
+    def get_metadata(self) -> FunctionMetaData:
+        base_metadata = self.get_base_metadata()
+
+        return FunctionMetaData(
+            **base_metadata.model_dump(exclude_none=True),
+            dockerfile_path=self.absolute_dockerfile_path,
+            docker_context=self.docker_context,
+        )
+
 
 class ToolkitModel(ToolkitFunction):
-    def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, description=description)
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+        absolute_dockerfile_path: str,
+        docker_context: str,
+    ):
+        super().__init__(
+            name=name,
+            task=task,
+            description=description,
+            absolute_dockerfile_path=absolute_dockerfile_path,
+            docker_context=docker_context,
+        )
         self.category = Category.MODEL
         self.started: bool = False
         self.startup_params = None
@@ -218,6 +217,14 @@ class ToolkitModel(ToolkitFunction):
         )
         return metadata.model_dump_json(exclude_none=True, by_alias=True)
 
+    def get_metadata(self) -> ModelMetaData:
+        return ModelMetaData(
+            **self.get_base_metadata().model_dump(exclude_none=True),
+            dockerfile_path=self.absolute_dockerfile_path,
+            startup_params=self.startup_params,
+            docker_context=self.docker_context,
+        )
+
 
 class ToolkitAPI(ToolkitBase):
     def __init__(self, name: str, task: str, description: str):
@@ -255,15 +262,8 @@ class ToolkitAPI(ToolkitBase):
 
         return self.call(validated_inputs, validated_params)
 
-    def deploy(self, host: str, username: str, password: str, **kwargs: Any):
-        self.write(host, username, password)
-
-    def dump_metadata(self) -> str:
-        metadata = APIMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
-        return metadata.model_dump_json(
-            exclude_none=True,
-            by_alias=True,
-        )
+    def get_metadata(self) -> APIMetaData:
+        return APIMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
 
 
 class ToolkitUtils(ToolkitAPI):
@@ -271,11 +271,5 @@ class ToolkitUtils(ToolkitAPI):
         super().__init__(name=name, task=task, description=description)
         self.category = Category.UTILS
 
-    def dump_metadata(self) -> str:
-        metadata = UtilsMetaData(
-            **self.get_base_metadata().model_dump(exclude_none=True)
-        )
-        return metadata.model_dump_json(
-            exclude_none=True,
-            by_alias=True,
-        )
+    def get_metadata(self) -> UtilsMetaData:
+        return UtilsMetaData(**self.get_base_metadata().model_dump(exclude_none=True))

@@ -139,7 +139,7 @@ class APIMetaData(MetaDataBase):
     pass
 
 
-class UtilsMetaData(MetaDataBase):
+class UtilsMetaData(APIMetaData):
     pass
 
 

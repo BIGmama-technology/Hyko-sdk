@@ -104,7 +104,11 @@ def toolkit_base():
 @pytest.fixture
 def toolkit_function():
     return ToolkitFunction(
-        name="test_function", task="task", description="A test function"
+        name="test_function",
+        task="task",
+        description="A test function",
+        docker_context="test_context",
+        absolute_dockerfile_path="test_dockerfile_path",
     )
 
 
@@ -114,6 +118,8 @@ def toolkit_model():
         name="test_function",
         task="task",
         description="Description",
+        docker_context="test_context",
+        absolute_dockerfile_path="test_dockerfile_path",
     )
 
 
