@@ -100,6 +100,7 @@ class Category(str, Enum):
     MODEL = "models"
     FUNCTION = "functions"
     API = "apis"
+    UTILS = "utils"
 
 
 class MetaDataBase(BaseModel):
@@ -135,10 +136,11 @@ class Method(str, Enum):
 
 
 class APIMetaData(MetaDataBase):
-    @computed_field
-    @property
-    def image(self) -> str:
-        return Category.API.value + "/" + self.task + "/" + self.name
+    pass
+
+
+class UtilsMetaData(APIMetaData):
+    pass
 
 
 class StorageConfig(BaseModel):

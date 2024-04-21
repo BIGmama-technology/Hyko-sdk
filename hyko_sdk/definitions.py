@@ -14,6 +14,7 @@ from .models import (
     HykoJsonSchema,
     MetaDataBase,
     ModelMetaData,
+    UtilsMetaData,
 )
 from .utils import to_friendly_types
 
@@ -263,3 +264,12 @@ class ToolkitAPI(ToolkitBase):
 
     def get_metadata(self) -> APIMetaData:
         return APIMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
+
+
+class ToolkitUtils(ToolkitAPI):
+    def __init__(self, name: str, task: str, description: str):
+        super().__init__(name=name, task=task, description=description)
+        self.category = Category.UTILS
+
+    def get_metadata(self) -> UtilsMetaData:
+        return UtilsMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
