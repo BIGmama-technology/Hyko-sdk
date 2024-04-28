@@ -12,8 +12,7 @@ from pydantic import BaseModel, Field
 
 from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
 from hyko_sdk.io import Audio, Image, Video
-from hyko_sdk.models import CoreModel, HykoJsonSchema
-from hyko_sdk.utils import to_friendly_types
+from hyko_sdk.models import CoreModel, CustomJsonSchema
 
 
 @pytest.fixture
@@ -130,9 +129,8 @@ def toolkit_api():
 
 @pytest.fixture
 def sample_iop_data_json_schema(sample_io_data: Type[BaseModel]):
-    return HykoJsonSchema(
+    return CustomJsonSchema(
         **sample_io_data.model_json_schema(),
-        friendly_types=to_friendly_types(sample_io_data),
     )
 
 

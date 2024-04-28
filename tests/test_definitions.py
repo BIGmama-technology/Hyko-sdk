@@ -12,7 +12,7 @@ from hyko_sdk.definitions import (
     ToolkitModel,
 )
 from hyko_sdk.models import (
-    HykoJsonSchema,
+    CustomJsonSchema,
     MetaDataBase,
     StorageConfig,
 )
@@ -21,33 +21,33 @@ from hyko_sdk.models import (
 # ToolkitBase Tests
 def test_toolkit_base_set_input(
     sample_io_data: Type[BaseModel],
-    sample_iop_data_json_schema: HykoJsonSchema,
+    sample_iop_data_json_schema: CustomJsonSchema,
     toolkit_base: ToolkitBase,
 ):
     input = toolkit_base.set_input(sample_io_data)
-    assert isinstance(toolkit_base.inputs, HykoJsonSchema)
+    assert isinstance(toolkit_base.inputs, CustomJsonSchema)
     assert input == sample_io_data
     assert toolkit_base.inputs == sample_iop_data_json_schema
 
 
 def test_toolkit_base_set_output(
     sample_io_data: Type[BaseModel],
-    sample_iop_data_json_schema: HykoJsonSchema,
+    sample_iop_data_json_schema: CustomJsonSchema,
     toolkit_base: ToolkitBase,
 ):
     output = toolkit_base.set_output(sample_io_data)
-    assert isinstance(toolkit_base.outputs, HykoJsonSchema)
+    assert isinstance(toolkit_base.outputs, CustomJsonSchema)
     assert output == sample_io_data
     assert toolkit_base.outputs == sample_iop_data_json_schema
 
 
 def test_toolkit_base_set_param(
     sample_io_data: Type[BaseModel],
-    sample_iop_data_json_schema: HykoJsonSchema,
+    sample_iop_data_json_schema: CustomJsonSchema,
     toolkit_base: ToolkitBase,
 ):
     param = toolkit_base.set_param(sample_io_data)
-    assert isinstance(toolkit_base.params, HykoJsonSchema)
+    assert isinstance(toolkit_base.params, CustomJsonSchema)
     assert param == sample_io_data
     assert toolkit_base.params == sample_iop_data_json_schema
 
@@ -140,11 +140,11 @@ def test_function_dump_metadata(
 # ToolkitModel Tests.
 def test_model_set_startup_params(
     sample_io_data: Type[BaseModel],
-    sample_iop_data_json_schema: HykoJsonSchema,
+    sample_iop_data_json_schema: CustomJsonSchema,
     toolkit_model: ToolkitModel,
 ):
     startup_params = toolkit_model.set_startup_params(sample_io_data)
-    assert isinstance(toolkit_model.startup_params, HykoJsonSchema)
+    assert isinstance(toolkit_model.startup_params, CustomJsonSchema)
     assert startup_params == sample_io_data
     assert toolkit_model.startup_params == sample_iop_data_json_schema
 
