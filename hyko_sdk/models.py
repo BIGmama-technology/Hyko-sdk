@@ -1,7 +1,9 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, computed_field
+
+from hyko_sdk.utils import to_display_name
 
 
 class Ext(str, Enum):
@@ -56,44 +58,37 @@ mimetype_to_extension = {
 extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}
 
 
-class IOPortType(str, Enum):
+class PortType(str, Enum):
     BOOLEAN = "boolean"
     NUMBER = "number"
     INTEGER = "integer"
     STRING = "string"
     ARRAY = "array"
-    OBJECT = "object"
 
-
-class HykoExtraTypes(str, Enum):
     IMAGE = "image"
     AUDIO = "audio"
     VIDEO = "video"
     PDF = "pdf"
-    CSV = "csv"
+
+    ANY = "any"
+
+
+class Item(BaseModel):
+    type: PortType
 
 
 class Property(BaseModel):
-    type: Optional[IOPortType | HykoExtraTypes] = None
-    description: Optional[str] = None
-    all_of: Optional[list[dict[str, str]]] = Field(default=None, alias="allOf")
-    ref: Optional[str] = Field(default=None, alias="$ref")
+    type: PortType = PortType.ANY
+    description: str
     default: Optional[Any] = None
+    show: bool
+    required: bool
 
-    enum: Optional[list[str]] = None
-    any_of: Optional[List["Property"]] = Field(default=None, alias="anyOf")
-
-    items: Optional["Property"] = None
-
-    model_config = ConfigDict(populate_by_name=True)
+    items: Optional[Item] = None
 
 
-class HykoJsonSchema(BaseModel):
+class CustomJsonSchema(BaseModel):
     properties: Dict[str, Property]
-    defs: Optional[Dict[str, Property]] = Field(default=None, alias="$defs")
-    friendly_types: Dict[str, str]
-
-    model_config = ConfigDict(populate_by_name=True)
 
 
 class Category(str, Enum):
@@ -103,19 +98,34 @@ class Category(str, Enum):
     UTILS = "utils"
 
 
-class MetaDataBase(BaseModel):
-    category: Category
+class FieldMetadata(BaseModel):
+    type: str
     name: str
-    task: str
     description: str
-    params: Optional[HykoJsonSchema] = None
-    inputs: Optional[HykoJsonSchema] = None
-    outputs: Optional[HykoJsonSchema] = None
+    default: Optional[Any] = None
+    required: bool = True
+    show: bool = True
 
+    @computed_field
+    @property
+    def display_name(self) -> str:
+        return to_display_name(self.name)
+
+
+class MetaDataBase(BaseModel):
     @computed_field
     @property
     def image(self) -> str:
         return self.category.value + "/" + self.task + "/" + self.name
+
+    name: str
+    task: str
+    description: str
+    category: Category
+
+    params: Optional[list[FieldMetadata]] = None
+    inputs: Optional[list[FieldMetadata]] = None
+    outputs: Optional[list[FieldMetadata]] = None
 
 
 class FunctionMetaData(MetaDataBase):
@@ -124,7 +134,7 @@ class FunctionMetaData(MetaDataBase):
 
 
 class ModelMetaData(FunctionMetaData):
-    startup_params: Optional[HykoJsonSchema] = None
+    startup_params: Optional[list[FieldMetadata]] = None
 
 
 class Method(str, Enum):

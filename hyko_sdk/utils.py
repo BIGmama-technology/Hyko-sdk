@@ -1,24 +1,27 @@
-from typing import Type
-
-from pydantic import BaseModel
+import re
 
 
-def to_friendly_types(pydantic_model: Type[BaseModel]):
-    out: dict[str, str] = {}
-    for field_name, field in pydantic_model.model_fields.items():
-        annotation = str(field.annotation).lower()
-        if "enum" in annotation:
-            out[field_name] = "enum"
-            continue
-        annotation = annotation.lstrip("<").rstrip(">")
-        annotation = annotation.replace("class ", "")
-        annotation = annotation.replace("hyko_sdk.io.", "")
-        annotation = annotation.replace("__main__.", "")
-        annotation = annotation.replace("typing.", "")
-        annotation = annotation.replace(" ", "")
-        annotation = annotation.replace("'", "")
-        annotation = annotation.replace("str", "text")
-        annotation = annotation.replace("int", "whole number")
-        annotation = annotation.replace("float", "decimal number")
-        out[field_name] = annotation
-    return out
+def to_display_name(field_name: str) -> str:
+    """
+    Converts a Python variable name into a human-readable display name.
+
+    Parameters:
+    - field_name (str): The original variable name to be transformed.
+
+    Returns:
+    - str: A string that is more readable and suitable for user interfaces
+
+    Example:
+    to_display_name("userAge_dataInput")
+    'User Age Data Input'
+    """
+    # Remove any special characters except underscores
+    cleaned_name = re.sub(r"[^a-zA-Z0-9_]", "", field_name)
+
+    # Replace underscores with spaces
+    spaced_name = cleaned_name.replace("_", " ")
+
+    # Convert camel case to spaces
+    readable_name = re.sub(r"(?<!^)(?=[A-Z])", " ", spaced_name).title()
+
+    return readable_name
