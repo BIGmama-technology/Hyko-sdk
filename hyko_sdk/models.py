@@ -83,8 +83,8 @@ class Property(BaseModel):
     type: PortType = PortType.ANY
     description: str
     default: Optional[Any] = None
-    show: bool
-    required: bool
+    show: bool = True
+    required: bool = True
 
     items: Optional[Item] = None
 
