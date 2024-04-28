@@ -15,6 +15,8 @@ from pydantic import Field, GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
+from hyko_sdk.components import Components
+
 from .models import Ext, StorageConfig, extension_to_mimetype
 
 
@@ -23,6 +25,7 @@ def field(
     default: Optional[Any] = None,
     show: bool = True,
     required: bool = True,
+    component: Optional[Components] = None,
 ) -> Any:
     return Field(
         default=default,
@@ -30,6 +33,7 @@ def field(
         json_schema_extra={
             "show": show,
             "required": required,
+            "component": component.model_dump() if component else None,
         },
     )
 

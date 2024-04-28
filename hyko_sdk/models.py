@@ -1,8 +1,9 @@
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, ValidationInfo, computed_field, field_validator
 
+from hyko_sdk.components import Components
 from hyko_sdk.utils import to_display_name
 
 
@@ -75,6 +76,7 @@ class PortType(str, Enum):
 
 class Item(BaseModel):
     type: PortType
+    items: Optional["Item"] = None
 
 
 class Property(BaseModel):
@@ -85,6 +87,15 @@ class Property(BaseModel):
     required: bool
 
     items: Optional[Item] = None
+
+    @field_validator("items")
+    @classmethod
+    def check_items(cls, v: Optional[Item], info: ValidationInfo) -> Optional[Item]:
+        if info.data.get("type") == PortType.ARRAY and v is None:
+            raise ValueError("Items must be provided when type is ARRAY")
+        return v
+
+    component: Optional[Components] = None
 
 
 class CustomJsonSchema(BaseModel):
@@ -98,13 +109,8 @@ class Category(str, Enum):
     UTILS = "utils"
 
 
-class FieldMetadata(BaseModel):
-    type: str
+class FieldMetadata(Property):
     name: str
-    description: str
-    default: Optional[Any] = None
-    required: bool = True
-    show: bool = True
 
     @computed_field
     @property
