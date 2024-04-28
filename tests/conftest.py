@@ -1,6 +1,6 @@
 import io
 from enum import Enum
-from typing import Any, Dict, Type
+from typing import Any, Dict
 from unittest import mock
 
 import numpy as np
@@ -11,8 +11,13 @@ from PIL.Image import Image as PILImage
 from pydantic import BaseModel, Field
 
 from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
-from hyko_sdk.io import Audio, Image, Video
-from hyko_sdk.models import CoreModel, CustomJsonSchema
+from hyko_sdk.io import Audio, Image, Video, field
+from hyko_sdk.models import CoreModel, StorageConfig
+
+
+@pytest.fixture(autouse=True)
+def configure_settings():
+    StorageConfig.configure("test", "test", "test")
 
 
 @pytest.fixture
@@ -63,7 +68,7 @@ def sample_call_fn_with_params():
 @pytest.fixture
 def base_model_child():
     class BaseModelChild(BaseModel):
-        key: str
+        key: str = Field(..., description="test")
 
     return BaseModelChild
 
@@ -128,18 +133,11 @@ def toolkit_api():
 
 
 @pytest.fixture
-def sample_iop_data_json_schema(sample_io_data: Type[BaseModel]):
-    return CustomJsonSchema(
-        **sample_io_data.model_json_schema(),
-    )
-
-
-@pytest.fixture
 def sample_io_data():
     class IO(CoreModel):
-        sample_io_image: Image = Field(..., description="IO image")
-        sample_io_audio: Audio = Field(..., description="IO audio")
-        sample_io_video: Video = Field(..., description="IO video")
+        sample_io_image: Image = field(description="test IO image")
+        sample_io_audio: Audio = field(description="test IO audio")
+        sample_io_video: Video = field(description="test IO video")
 
     return IO
 
@@ -147,8 +145,8 @@ def sample_io_data():
 @pytest.fixture
 def sample_param_data():
     class Param(CoreModel):
-        min: int
-        max: int
+        min: int = Field(..., description="test")
+        max: int = Field(..., description="test")
 
     return Param
 
@@ -177,9 +175,9 @@ def sample_pil_image_data() -> PILImage:
 @pytest.fixture
 def test_model():
     class TestModel(BaseModel):
-        name: str
-        age: int
-        gender: str
+        name: str = Field(..., description="test")
+        age: int = Field(..., description="test")
+        gender: str = Field(..., description="test")
 
     return TestModel
 
