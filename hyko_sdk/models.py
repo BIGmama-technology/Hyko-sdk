@@ -1,22 +1,18 @@
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from pydantic import (
     BaseModel,
-    ConfigDict,
-    Field,
     ValidationInfo,
     computed_field,
     field_validator,
 )
-from pydantic.json_schema import (
-    GenerateJsonSchema,
-    JsonSchemaMode,
-)
-from pydantic_core import CoreSchema
 
-from hyko_sdk.components import Components, Select
-from hyko_sdk.utils import to_display_name
+from .components import (
+    Components,
+)
+from .json_schema import Item, PortType
+from .utils import to_display_name
 
 
 class Ext(str, Enum):
@@ -71,83 +67,6 @@ mimetype_to_extension = {
 extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}
 
 
-class PortType(str, Enum):
-    BOOLEAN = "boolean"
-    NUMBER = "number"
-    INTEGER = "integer"
-    STRING = "string"
-    ARRAY = "array"
-
-    IMAGE = "image"
-    AUDIO = "audio"
-    VIDEO = "video"
-    PDF = "pdf"
-
-    ANY = "any"
-    OBJECT = "object"
-
-
-class Item(BaseModel):
-    type: PortType
-    items: Optional["Item"] = None
-
-
-class Ref(BaseModel):
-    ref: str = Field(..., alias="$ref")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class Property(BaseModel):
-    type: PortType = PortType.ANY
-    description: str
-    default: Optional[Any] = None
-
-    items: Optional[Item] = None
-
-    all_of: Optional[list[Ref]] = Field(default=None, alias="allOf")
-
-    show: bool = True
-    required: bool = True
-    component: Optional[Components] = None
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class EnumProperty(BaseModel):
-    type: PortType
-    enum: list[str | int | float]
-
-
-class CustomJsonSchema(BaseModel):
-    properties: Dict[str, Property]
-    defs: Optional[Dict[str, EnumProperty]] = Field(default=None, alias="$defs")
-
-
-class JsonSchemaGenerator(GenerateJsonSchema):
-    def __init__(
-        self,
-        by_alias: bool,
-        ref_template: str,
-    ):
-        super().__init__(by_alias, ref_template)
-
-    def generate(self, schema: CoreSchema, mode: JsonSchemaMode = "validation"):
-        json_schema = super().generate(schema, mode=mode)
-        json_schema = CustomJsonSchema.model_validate(json_schema)
-
-        for field, property in json_schema.properties.items():
-            if property.all_of and json_schema.defs:
-                enum_property = json_schema.defs[property.all_of[0].ref]
-
-                json_schema.properties[field].type = enum_property.type
-                json_schema.properties[field].component = Select(
-                    choices=enum_property.enum
-                )
-
-        return json_schema.model_dump()
-
-
 class Category(str, Enum):
     MODEL = "models"
     FUNCTION = "functions"
@@ -179,7 +98,7 @@ class FieldMetadata(BaseModel):
     show: bool
     required: bool
 
-    component: Optional[Components] = None
+    component: Components
 
 
 class MetaDataBase(BaseModel):

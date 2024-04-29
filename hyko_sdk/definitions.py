@@ -5,16 +5,15 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from hyko_sdk.models import JsonSchemaGenerator, StorageConfig
-
+from .json_schema import CustomJsonSchema, JsonSchemaGenerator
 from .models import (
     APIMetaData,
     Category,
-    CustomJsonSchema,
     FieldMetadata,
     FunctionMetaData,
     MetaDataBase,
     ModelMetaData,
+    StorageConfig,
     UtilsMetaData,
 )
 

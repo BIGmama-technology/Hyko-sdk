@@ -15,8 +15,7 @@ from pydantic import Field, GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
-from hyko_sdk.components import Components
-
+from .components import Components
 from .models import Ext, StorageConfig, extension_to_mimetype
 
 
