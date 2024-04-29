@@ -4,8 +4,6 @@ from pydantic import BaseModel, computed_field
 
 
 class Component(BaseModel):
-    place_holder: str
-
     @computed_field
     @property
     def name(self) -> str:
@@ -17,11 +15,8 @@ class Slider(Component):
     geq: int
 
 
-class Divider(Component):
-    pass
+class Select(Component):
+    choices: list[str | int | float]
 
 
-Components = Union[
-    Slider,
-    Divider,
-]
+Components = Union[Slider, Select]

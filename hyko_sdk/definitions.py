@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from hyko_sdk.models import StorageConfig
+from hyko_sdk.models import JsonSchemaGenerator, StorageConfig
 
 from .models import (
     APIMetaData,
@@ -46,7 +46,12 @@ class ToolkitBase:
         self.params = None
 
     def fields_to_metadata(self, model: Type[BaseModel]):
-        schema = CustomJsonSchema.model_validate(model.model_json_schema())
+        schema = CustomJsonSchema.model_validate(
+            model.model_json_schema(
+                schema_generator=JsonSchemaGenerator,
+                ref_template="{model}",
+            )
+        )
         return [
             FieldMetadata(
                 name=field,
