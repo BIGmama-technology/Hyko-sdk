@@ -38,24 +38,28 @@ class NumberField(Component):
     placeholder: str
 
 
+class SubField(BaseModel):
+    type: str
+    name: str
+    description: str
+
+    component: "Components"
+
+
 class ComplexComponent(Component):
-    class SubField(BaseModel):
-        type: str
-        name: str
-        description: str
-
-        component: "Components"
-
     fields: list[SubField]
 
 
 class ListComponent(Component):
-    component: "Components"
+    item_component: "Components"
 
 
 def get_name(v: Any):
     """Name discriminator function."""
-    return v.get("name")
+    try:
+        return v.get("name")
+    except Exception:
+        return v.name
 
 
 Components = Annotated[
@@ -67,6 +71,7 @@ Components = Annotated[
         Annotated[NumberField, Tag("NumberField")],
         Annotated[ComplexComponent, Tag("ComplexComponent")],
         Annotated[Blank, Tag("Blank")],
+        Annotated[ListComponent, Tag("ListComponent")],
     ],
     Discriminator(get_name),
 ]

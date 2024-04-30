@@ -9,8 +9,10 @@ from .components import (
     Blank,
     ComplexComponent,
     Components,
+    ListComponent,
     NumberField,
     Select,
+    SubField,
     TextField,
     Toggle,
 )
@@ -43,7 +45,7 @@ def set_default_component(type: Optional[PortType]) -> Components:
         case PortType.STRING:
             return TextField(placeholder="")
         case _:
-            return Blank(placeholder="")
+            return Blank()
 
 
 class Item(BaseModel):
@@ -62,7 +64,7 @@ class Property(BaseModel):
     description: Optional[str] = None
     default: Optional[Any] = None
 
-    items: Optional[Item] = None
+    items: Optional[Item | Ref] = None
 
     all_of: Optional[list[Ref]] = Field(default=None, alias="allOf")
 
@@ -120,11 +122,27 @@ class JsonSchemaGenerator(GenerateJsonSchema):
                     property.type = PortType.OBJECT
                     property.component = ComplexComponent(
                         fields=[
-                            ComplexComponent.SubField(
-                                name=name, **property.model_dump()
-                            )
+                            SubField(name=name, **property.model_dump())
                             for name, property in _def.properties.items()
                         ]
+                    )
+            if property.type == PortType.ARRAY:
+                items = property.items
+                if isinstance(items, Item):
+                    property.component = ListComponent(
+                        item_component=set_default_component(items.type)
+                    )
+                elif isinstance(items, Ref) and json_schema.defs:
+                    _def = json_schema.defs[items.ref]
+                    assert isinstance(_def, ModelDef)
+                    assert property.component
+                    property.component = ListComponent(
+                        item_component=ComplexComponent(
+                            fields=[
+                                SubField(name=name, **property.model_dump())
+                                for name, property in _def.properties.items()
+                            ]
+                        )
                     )
 
         return json_schema.model_dump()

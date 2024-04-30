@@ -11,7 +11,7 @@ from pydantic import (
 from .components import (
     Components,
 )
-from .json_schema import Item, PortType
+from .json_schema import Item, PortType, Ref
 from .utils import to_display_name
 
 
@@ -86,7 +86,7 @@ class FieldMetadata(BaseModel):
     description: Optional[str] = None
     default: Optional[Any] = None
 
-    items: Optional[Item] = None
+    items: Optional[Item | Ref] = None
 
     @field_validator("items")
     @classmethod
