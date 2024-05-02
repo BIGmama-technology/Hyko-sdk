@@ -49,7 +49,7 @@ def set_default_component(type: Optional[PortType]) -> Components:
 
 
 class Item(BaseModel):
-    type: PortType
+    type: PortType = PortType.ANY
     items: Optional["Item"] = None
 
 
