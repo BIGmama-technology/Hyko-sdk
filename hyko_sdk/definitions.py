@@ -4,8 +4,13 @@ from typing import Any, Callable, Coroutine, Type, TypeVar
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from pydantic.json_schema import GenerateJsonSchema
 
-from .json_schema import CustomJsonSchema, JsonSchemaGenerator
+from .json_schema import (
+    CustomJsonSchema,
+    JsonSchemaGenerator,
+    JsonSchemaGeneratorWithComponents,
+)
 from .models import (
     APIMetaData,
     Category,
@@ -34,20 +39,24 @@ class ToolkitBase:
         self,
         name: str,
         task: str,
-        desc: str,
+        description: str,
     ):
         self.category: Category = Category.FUNCTION
-        self.desc = desc
+        self.desc = description
         self.name = name
         self.task = task
         self.inputs = None
         self.outputs = None
         self.params = None
 
-    def fields_to_metadata(self, model: Type[BaseModel]):
+    def fields_to_metadata(
+        self,
+        model: Type[BaseModel],
+        schema_generator: type[GenerateJsonSchema] = JsonSchemaGeneratorWithComponents,
+    ):
         schema = CustomJsonSchema.model_validate(
             model.model_json_schema(
-                schema_generator=JsonSchemaGenerator,
+                schema_generator=schema_generator,
                 ref_template="{model}",
             )
         )
@@ -64,7 +73,9 @@ class ToolkitBase:
         return model
 
     def set_output(self, model: T) -> T:
-        self.outputs = self.fields_to_metadata(model)
+        self.outputs = self.fields_to_metadata(
+            model, schema_generator=JsonSchemaGenerator
+        )
         return model
 
     def set_param(self, model: T) -> T:
@@ -86,7 +97,18 @@ class ToolkitBase:
         metadata = MetaDataBase(
             **self.get_base_metadata().model_dump(exclude_none=True)
         )
-        return metadata.model_dump_json()
+        return metadata.model_dump_json(exclude_none=True)
+
+
+class ToolkitIO(ToolkitBase):
+    def set_param(self, model: T) -> T:
+        raise NotImplementedError
+
+    def set_output(self, model: T) -> T:
+        self.outputs = self.fields_to_metadata(
+            model, schema_generator=JsonSchemaGeneratorWithComponents
+        )
+        return model
 
 
 class ToolkitFunction(ToolkitBase, FastAPI):
@@ -227,7 +249,7 @@ class ToolkitModel(ToolkitFunction):
 
 class ToolkitAPI(ToolkitBase):
     def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, desc=description)
+        super().__init__(name=name, task=task, description=description)
         self.category = Category.API
 
     def set_input(self, model: T) -> T:
