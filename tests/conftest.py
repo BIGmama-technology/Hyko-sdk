@@ -102,7 +102,9 @@ def startup():
 
 @pytest.fixture
 def toolkit_base():
-    return ToolkitBase(name="Test Toolkit", task="Testing", desc="A test toolkit base")
+    return ToolkitBase(
+        name="Test Toolkit", task="Testing", description="A test toolkit base"
+    )
 
 
 @pytest.fixture
