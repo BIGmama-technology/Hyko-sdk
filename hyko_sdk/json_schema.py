@@ -31,7 +31,7 @@ class Property(BaseModel):
     description: Optional[str] = None
     default: Optional[Any] = None
 
-    items: Optional[Item | Ref] = None
+    items: Optional[Ref | Item] = None
 
     all_of: Optional[list[Ref]] = Field(default=None, alias="allOf")
     ref: Optional[str] = Field(default=None, alias="$ref")
@@ -71,7 +71,6 @@ class JsonSchemaGenerator(GenerateJsonSchema):
     def generate(self, schema: CoreSchema, mode: JsonSchemaMode = "validation"):
         json_schema = super().generate(schema, mode=mode)
         json_schema = CustomJsonSchema.model_validate(json_schema)
-
         for _, property in json_schema.properties.items():
             if property.all_of and json_schema.defs:
                 _def = json_schema.defs[property.all_of[0].ref]
@@ -88,7 +87,6 @@ class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
     def generate(self, schema: CoreSchema, mode: JsonSchemaMode = "validation"):
         json_schema = super().generate(schema, mode)
         json_schema = CustomJsonSchema.model_validate(json_schema)
-
         for _, property in json_schema.properties.items():
             if property.all_of and json_schema.defs:
                 _def = json_schema.defs[property.all_of[0].ref]
@@ -119,14 +117,20 @@ class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
                 elif isinstance(items, Ref) and json_schema.defs:
                     _def = json_schema.defs[items.ref]
                     assert isinstance(_def, ModelDef)
-                    assert property.component
-                    property.component = ListComponent(
-                        item_component=ComplexComponent(
-                            fields=[
-                                SubField(name=name, **property.model_dump())
-                                for name, property in _def.properties.items()
-                            ]
+
+                    fields = [
+                        SubField(name=name, **prop.model_dump())
+                        if prop.component
+                        else SubField(
+                            name=name,
+                            component=set_default_component(prop.type),
+                            **prop.model_dump(exclude_none=True),
                         )
+                        for name, prop in _def.properties.items()
+                    ]
+
+                    property.component = ListComponent(
+                        item_component=ComplexComponent(fields=fields)
                     )
 
             if not property.component:
