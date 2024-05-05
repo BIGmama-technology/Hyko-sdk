@@ -97,6 +97,10 @@ class StorageSelect(Component):
     supported_ext: list[Ext]
 
 
+class ImagePreview(Component):
+    placeholder: str
+
+
 class ComplexComponent(Component):
     fields: list[SubField]
 
@@ -124,6 +128,7 @@ Components = Annotated[
         Annotated[Blank, Tag("Blank")],
         Annotated[ListComponent, Tag("ListComponent")],
         Annotated[StorageSelect, Tag("StorageSelect")],
+        Annotated[ImagePreview, Tag("ImagePreview")],
     ],
     Discriminator(get_name),
 ]
@@ -132,13 +137,13 @@ Components = Annotated[
 def set_default_component(type: Optional[PortType]) -> Components:
     match type:
         case PortType.INTEGER:
-            return NumberField(placeholder="")
+            return NumberField(placeholder="Number field.")
         case PortType.NUMBER:
-            return NumberField(placeholder="")
+            return NumberField(placeholder="Number field.")
         case PortType.BOOLEAN:
             return Toggle()
         case PortType.STRING:
-            return TextField(placeholder="")
+            return TextField(placeholder="Text field.")
         case PortType.IMAGE:
             return StorageSelect(supported_ext=[Ext.PNG, Ext.JPG, Ext.JPEG])
         case _:
