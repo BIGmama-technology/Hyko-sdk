@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.json_schema import GenerateJsonSchema, JsonSchemaMode
 from pydantic_core import CoreSchema
 
@@ -67,19 +67,12 @@ class Property(BaseModel):
     items: Optional[Item | Ref] = None
 
     all_of: Optional[list[Ref]] = Field(default=None, alias="allOf")
+    ref: Optional[str] = Field(default=None, alias="$ref")
 
     show: bool = True
     required: bool = True
 
     component: Optional[Components] = None
-
-    @field_validator("component", mode="after")
-    @classmethod
-    def default_component(cls, v: Optional[Components], info: ValidationInfo):
-        if v:
-            return v
-        else:
-            return set_default_component(info.data.get("type"))
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -97,6 +90,8 @@ class CustomJsonSchema(BaseModel):
     properties: dict[str, Property]
     defs: Optional[dict[str, EnumDef | ModelDef]] = Field(default=None, alias="$defs")
 
+    model_config = ConfigDict(populate_by_name=True)
+
 
 class JsonSchemaGenerator(GenerateJsonSchema):
     def __init__(
@@ -110,22 +105,44 @@ class JsonSchemaGenerator(GenerateJsonSchema):
         json_schema = super().generate(schema, mode=mode)
         json_schema = CustomJsonSchema.model_validate(json_schema)
 
-        for field, property in json_schema.properties.items():
-            property = json_schema.properties[field]
-
+        for _, property in json_schema.properties.items():
             if property.all_of and json_schema.defs:
                 _def = json_schema.defs[property.all_of[0].ref]
                 if isinstance(_def, EnumDef):
                     property.type = _def.type
+
+            elif property.ref and json_schema.defs:
+                property.type = PortType.OBJECT
+
+        return json_schema.model_dump(exclude_none=True)
+
+
+class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
+    def generate(self, schema: CoreSchema, mode: JsonSchemaMode = "validation"):
+        json_schema = super().generate(schema, mode)
+        json_schema = CustomJsonSchema.model_validate(json_schema)
+
+        for _, property in json_schema.properties.items():
+            if property.all_of and json_schema.defs:
+                _def = json_schema.defs[property.all_of[0].ref]
+                if isinstance(_def, EnumDef):
                     property.component = Select(choices=_def.enum)
-                else:
-                    property.type = PortType.OBJECT
-                    property.component = ComplexComponent(
-                        fields=[
-                            SubField(name=name, **property.model_dump())
-                            for name, property in _def.properties.items()
-                        ]
-                    )
+
+            elif property.ref and json_schema.defs:
+                _def = json_schema.defs[property.ref]
+                if isinstance(_def, ModelDef):
+                    fields = [
+                        SubField(name=name, **prop.model_dump())
+                        if prop.component
+                        else SubField(
+                            name=name,
+                            component=set_default_component(prop.type),
+                            **prop.model_dump(exclude_none=True),
+                        )
+                        for name, prop in _def.properties.items()
+                    ]
+                    property.component = ComplexComponent(fields=fields)
+
             if property.type == PortType.ARRAY:
                 items = property.items
                 if isinstance(items, Item):
@@ -145,4 +162,7 @@ class JsonSchemaGenerator(GenerateJsonSchema):
                         )
                     )
 
-        return json_schema.model_dump()
+            if not property.component:
+                property.component = set_default_component(property.type)
+
+        return json_schema.model_dump(exclude_none=True)
