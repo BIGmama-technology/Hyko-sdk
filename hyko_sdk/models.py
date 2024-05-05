@@ -99,7 +99,7 @@ class FieldMetadata(BaseModel):
     show: bool
     required: bool
 
-    component: Components
+    component: Optional[Components] = None
 
 
 class MetaDataBase(BaseModel):
