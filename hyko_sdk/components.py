@@ -1,6 +1,53 @@
-from typing import Annotated, Any, Union
+from enum import Enum
+from typing import Annotated, Any, Optional, Union
 
 from pydantic import BaseModel, Discriminator, Tag, computed_field
+
+
+class Ext(str, Enum):
+    TXT = "txt"
+    CSV = "csv"
+    PDF = "pdf"
+    PNG = "png"
+    JPEG = "jpeg"
+    MPEG = "mpeg"
+    WEBM = "webm"
+    WAV = "wav"
+    MP4 = "mp4"
+    MP3 = "mp3"
+    AVI = "avi"
+    MKV = "mkv"
+    MOV = "mov"
+    WMV = "wmv"
+    GIF = "gif"
+    JPG = "jpg"
+    TIFF = "tiff"
+    TIF = "tif"
+    BMP = "bmp"
+    JP2 = "jp2"
+    DIB = "dib"
+    PGM = "pgm"
+    PPM = "ppm"
+    PNM = "pnm"
+    RAS = "ras"
+    HDR = "hdr"
+    WEBP = "webp"
+
+
+class PortType(str, Enum):
+    BOOLEAN = "boolean"
+    NUMBER = "number"
+    INTEGER = "integer"
+    STRING = "string"
+    ARRAY = "array"
+
+    IMAGE = "image"
+    AUDIO = "audio"
+    VIDEO = "video"
+    PDF = "pdf"
+
+    ANY = "any"
+    OBJECT = "object"
 
 
 class Component(BaseModel):
@@ -46,6 +93,10 @@ class SubField(BaseModel):
     component: "Components"
 
 
+class StorageSelect(Component):
+    supported_ext: list[Ext]
+
+
 class ComplexComponent(Component):
     fields: list[SubField]
 
@@ -72,6 +123,23 @@ Components = Annotated[
         Annotated[ComplexComponent, Tag("ComplexComponent")],
         Annotated[Blank, Tag("Blank")],
         Annotated[ListComponent, Tag("ListComponent")],
+        Annotated[StorageSelect, Tag("StorageSelect")],
     ],
     Discriminator(get_name),
 ]
+
+
+def set_default_component(type: Optional[PortType]) -> Components:
+    match type:
+        case PortType.INTEGER:
+            return NumberField(placeholder="")
+        case PortType.NUMBER:
+            return NumberField(placeholder="")
+        case PortType.BOOLEAN:
+            return Toggle()
+        case PortType.STRING:
+            return TextField(placeholder="")
+        case PortType.IMAGE:
+            return StorageSelect(supported_ext=[Ext.PNG, Ext.JPG, Ext.JPEG])
+        case _:
+            return Blank()

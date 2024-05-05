@@ -11,30 +11,13 @@ import soundfile  # type: ignore
 from fastapi import HTTPException, status
 from numpy.typing import NDArray
 from PIL import Image as PIL_Image
-from pydantic import Field, GetCoreSchemaHandler, GetJsonSchemaHandler
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
-from .components import Components
-from .models import Ext, StorageConfig, extension_to_mimetype
-
-
-def field(
-    description: str,
-    default: Optional[Any] = None,
-    show: bool = True,
-    required: bool = True,
-    component: Optional[Components] = None,
-) -> Any:
-    return Field(
-        default=default,
-        description=description,
-        json_schema_extra={
-            "show": show,
-            "required": required,
-            "component": component.model_dump() if component else None,
-        },
-    )
+from .components import Ext
+from .models import StorageConfig
+from .utils import extension_to_mimetype
 
 
 class HykoBaseType:

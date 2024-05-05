@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -6,46 +5,14 @@ from pydantic.json_schema import GenerateJsonSchema, JsonSchemaMode
 from pydantic_core import CoreSchema
 
 from .components import (
-    Blank,
     ComplexComponent,
     Components,
     ListComponent,
-    NumberField,
+    PortType,
     Select,
     SubField,
-    TextField,
-    Toggle,
+    set_default_component,
 )
-
-
-class PortType(str, Enum):
-    BOOLEAN = "boolean"
-    NUMBER = "number"
-    INTEGER = "integer"
-    STRING = "string"
-    ARRAY = "array"
-
-    IMAGE = "image"
-    AUDIO = "audio"
-    VIDEO = "video"
-    PDF = "pdf"
-
-    ANY = "any"
-    OBJECT = "object"
-
-
-def set_default_component(type: Optional[PortType]) -> Components:
-    match type:
-        case PortType.INTEGER:
-            return NumberField(placeholder="")
-        case PortType.NUMBER:
-            return NumberField(placeholder="")
-        case PortType.BOOLEAN:
-            return Toggle()
-        case PortType.STRING:
-            return TextField(placeholder="")
-        case _:
-            return Blank()
 
 
 class Item(BaseModel):

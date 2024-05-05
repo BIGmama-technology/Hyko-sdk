@@ -15,58 +15,6 @@ from .json_schema import Item, PortType, Ref
 from .utils import to_display_name
 
 
-class Ext(str, Enum):
-    TXT = "txt"
-    CSV = "csv"
-    PDF = "pdf"
-    PNG = "png"
-    JPEG = "jpeg"
-    MPEG = "mpeg"
-    WEBM = "webm"
-    WAV = "wav"
-    MP4 = "mp4"
-    MP3 = "mp3"
-    AVI = "avi"
-    MKV = "mkv"
-    MOV = "mov"
-    WMV = "wmv"
-    GIF = "gif"
-    JPG = "jpg"
-    TIFF = "tiff"
-    TIF = "tif"
-    BMP = "bmp"
-    JP2 = "jp2"
-    DIB = "dib"
-    PGM = "pgm"
-    PPM = "ppm"
-    PNM = "pnm"
-    RAS = "ras"
-    HDR = "hdr"
-    WEBP = "webp"
-
-
-mimetype_to_extension = {
-    "text/plain": "txt",
-    "text/csv": "csv",
-    "application/pdf": "pdf",
-    "image/png": "png",
-    "image/jpeg": "jpeg",
-    "image/gif": "gif",
-    "image/bmp": "bmp",
-    "image/webp": "webp",
-    "audio/wav": "wav",
-    "audio/mpeg": "mp3",
-    "video/mp4": "mp4",
-    "video/vnd.avi": "avi",
-    "video/webm": "webm",
-    "video/mpeg": "mpeg",
-    "video/x-matroska": "mkv",
-    "video/quicktime": "mov",
-    "video/x-ms-wmv": "wmv",
-}
-extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}
-
-
 class Category(str, Enum):
     MODEL = "models"
     FUNCTION = "functions"
