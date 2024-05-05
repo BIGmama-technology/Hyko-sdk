@@ -11,8 +11,9 @@ from PIL.Image import Image as PILImage
 from pydantic import BaseModel, Field
 
 from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
-from hyko_sdk.io import Audio, Image, Video, field
+from hyko_sdk.io import Audio, Image, Video
 from hyko_sdk.models import CoreModel, StorageConfig
+from hyko_sdk.utils import field
 
 
 @pytest.fixture(autouse=True)

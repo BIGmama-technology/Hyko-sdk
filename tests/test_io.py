@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from PIL import Image as PIL_Image
 
+from hyko_sdk.components import Ext
 from hyko_sdk.io import PDF, Audio, Image, Video
-from hyko_sdk.models import Ext
 
 
 ############## Image Tests #####################
