@@ -20,6 +20,7 @@ class Category(str, Enum):
     FUNCTION = "functions"
     API = "apis"
     UTILS = "utils"
+    IO = "IO"
 
 
 class FieldMetadata(BaseModel):
@@ -89,6 +90,10 @@ class APIMetaData(MetaDataBase):
 
 
 class UtilsMetaData(APIMetaData):
+    pass
+
+
+class IOMetaData(MetaDataBase):
     pass
 
 

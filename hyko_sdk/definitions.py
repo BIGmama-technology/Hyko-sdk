@@ -16,6 +16,7 @@ from .models import (
     Category,
     FieldMetadata,
     FunctionMetaData,
+    IOMetaData,
     MetaDataBase,
     ModelMetaData,
     StorageConfig,
@@ -101,6 +102,16 @@ class ToolkitBase:
 
 
 class ToolkitIO(ToolkitBase):
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+    ):
+        ToolkitBase.__init__(self, name, task, description)
+
+        self.category = Category.IO
+
     def set_param(self, model: T) -> T:
         raise NotImplementedError
 
@@ -109,6 +120,13 @@ class ToolkitIO(ToolkitBase):
             model, schema_generator=JsonSchemaGeneratorWithComponents
         )
         return model
+
+    def get_metadata(self) -> IOMetaData:
+        base_metadata = self.get_base_metadata()
+
+        return IOMetaData(
+            **base_metadata.model_dump(exclude_none=True),
+        )
 
 
 class ToolkitFunction(ToolkitBase, FastAPI):
