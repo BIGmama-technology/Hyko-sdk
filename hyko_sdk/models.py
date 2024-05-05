@@ -85,6 +85,7 @@ class FieldMetadata(BaseModel):
 
     description: Optional[str] = None
     default: Optional[Any] = None
+    value: Optional[Any] = None
 
     items: Optional[Item | Ref] = None
 
@@ -111,6 +112,7 @@ class MetaDataBase(BaseModel):
     task: str
     description: str
     category: Category
+    icon: Optional[str] = None
 
     params: Optional[list[FieldMetadata]] = None
     inputs: Optional[list[FieldMetadata]] = None
