@@ -45,9 +45,6 @@ class FieldMetadata(BaseModel):
             raise ValueError("Items must be provided when type is ARRAY")
         return v
 
-    show: bool
-    required: bool
-
     component: Optional[Components] = None
 
 

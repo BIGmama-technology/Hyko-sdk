@@ -36,9 +36,6 @@ class Property(BaseModel):
     all_of: Optional[list[Ref]] = Field(default=None, alias="allOf")
     ref: Optional[str] = Field(default=None, alias="$ref")
 
-    show: bool = True
-    required: bool = True
-
     component: Optional[Components] = None
 
     model_config = ConfigDict(populate_by_name=True)

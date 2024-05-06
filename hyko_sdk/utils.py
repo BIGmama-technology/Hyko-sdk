@@ -9,16 +9,12 @@ from hyko_sdk.components import Components
 def field(
     description: str,
     default: Optional[Any] = None,
-    show: bool = True,
-    required: bool = True,
     component: Optional[Components] = None,
 ) -> Any:
     return Field(
         default=default,
         description=description,
         json_schema_extra={
-            "show": show,
-            "required": required,
             "component": component.model_dump() if component else None,
         },
     )
