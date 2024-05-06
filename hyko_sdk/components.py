@@ -98,7 +98,23 @@ class StorageSelect(Component):
 
 
 class ImagePreview(Component):
-    placeholder: str
+    pass
+
+
+class VideoPreview(Component):
+    pass
+
+
+class TextPreview(Component):
+    pass
+
+
+class PDFPreview(Component):
+    pass
+
+
+class AudioPreview(Component):
+    pass
 
 
 class ComplexComponent(Component):
@@ -129,6 +145,10 @@ Components = Annotated[
         Annotated[ListComponent, Tag("ListComponent")],
         Annotated[StorageSelect, Tag("StorageSelect")],
         Annotated[ImagePreview, Tag("ImagePreview")],
+        Annotated[VideoPreview, Tag("VideoPreview")],
+        Annotated[TextPreview, Tag("TextPreview")],
+        Annotated[PDFPreview, Tag("PDFPreview")],
+        Annotated[AudioPreview, Tag("AudioPreview")],
     ],
     Discriminator(get_name),
 ]
