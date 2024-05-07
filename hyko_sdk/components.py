@@ -51,6 +51,8 @@ class PortType(str, Enum):
 
 
 class Component(BaseModel):
+    freezed: bool = False
+
     @computed_field
     @property
     def name(self) -> str:
