@@ -25,7 +25,9 @@ def test_toolkit_base_set_input(
 ):
     input = toolkit_base.set_input(sample_io_data)
     assert toolkit_base.inputs
-    assert all(isinstance(field, FieldMetadata) for field in toolkit_base.inputs)
+    assert all(
+        isinstance(field, FieldMetadata) for field in toolkit_base.inputs.values()
+    )
     assert input == sample_io_data
 
 
@@ -35,7 +37,9 @@ def test_toolkit_base_set_output(
 ):
     output = toolkit_base.set_output(sample_io_data)
     assert toolkit_base.outputs
-    assert all(isinstance(field, FieldMetadata) for field in toolkit_base.outputs)
+    assert all(
+        isinstance(field, FieldMetadata) for field in toolkit_base.outputs.values()
+    )
     assert output == sample_io_data
 
 
@@ -45,7 +49,9 @@ def test_toolkit_base_set_param(
 ):
     param = toolkit_base.set_param(sample_io_data)
     assert toolkit_base.params
-    assert all(isinstance(field, FieldMetadata) for field in toolkit_base.params)
+    assert all(
+        isinstance(field, FieldMetadata) for field in toolkit_base.params.values()
+    )
     assert param == sample_io_data
 
 
@@ -142,7 +148,8 @@ def test_model_set_startup_params(
     startup_params = toolkit_model.set_startup_params(sample_io_data)
     assert toolkit_model.startup_params
     assert all(
-        isinstance(field, FieldMetadata) for field in toolkit_model.startup_params
+        isinstance(field, FieldMetadata)
+        for field in toolkit_model.startup_params.values()
     )
     assert startup_params == sample_io_data
 
