@@ -110,9 +110,6 @@ class ToolkitIO(ToolkitBase):
 
         self.category = Category.IO
 
-    def set_param(self, model: T) -> T:
-        raise NotImplementedError
-
     def set_output(self, model: T) -> T:
         self.outputs = self.fields_to_metadata(
             model, schema_generator=JsonSchemaGeneratorWithComponents
