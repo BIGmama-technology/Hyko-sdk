@@ -45,6 +45,7 @@ class PortType(str, Enum):
     AUDIO = "audio"
     VIDEO = "video"
     PDF = "pdf"
+    CSV = "csv"
 
     ANY = "any"
     OBJECT = "object"
