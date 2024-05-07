@@ -46,9 +46,9 @@ class ToolkitBase:
         self.desc = description
         self.name = name
         self.task = task
-        self.inputs = None
-        self.outputs = None
-        self.params = None
+        self.inputs = {}
+        self.outputs = {}
+        self.params = {}
 
     def fields_to_metadata(
         self,
@@ -61,13 +61,13 @@ class ToolkitBase:
                 ref_template="{model}",
             )
         )
-        return [
-            FieldMetadata(
+        return {
+            field: FieldMetadata(
                 name=field,
                 **prop.model_dump(),
             )
             for field, prop in schema.properties.items()
-        ]
+        }
 
     def set_input(self, model: T) -> T:
         self.inputs = self.fields_to_metadata(model)
@@ -95,9 +95,7 @@ class ToolkitBase:
         )
 
     def dump_metadata(self) -> str:
-        metadata = MetaDataBase(
-            **self.get_base_metadata().model_dump(exclude_none=True)
-        )
+        metadata = self.get_base_metadata()
         return metadata.model_dump_json(exclude_none=True)
 
 
@@ -218,7 +216,7 @@ class ToolkitModel(ToolkitFunction):
         )
         self.category = Category.MODEL
         self.started: bool = False
-        self.startup_params = None
+        self.startup_params = {}
 
     def set_startup_params(self, model: T) -> T:
         self.startup_params = self.fields_to_metadata(model)

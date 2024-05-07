@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any, Optional
+from uuid import UUID
 
 from pydantic import (
     BaseModel,
@@ -24,7 +25,7 @@ class Category(str, Enum):
 
 
 class FieldMetadata(BaseModel):
-    type: str
+    type: PortType
     name: str
 
     @computed_field
@@ -47,6 +48,8 @@ class FieldMetadata(BaseModel):
 
     component: Optional[Components] = None
 
+    callback_id: Optional[UUID] = None
+
 
 class MetaDataBase(BaseModel):
     @computed_field
@@ -60,9 +63,15 @@ class MetaDataBase(BaseModel):
     category: Category
     icon: Optional[str] = None
 
-    params: Optional[list[FieldMetadata]] = None
-    inputs: Optional[list[FieldMetadata]] = None
-    outputs: Optional[list[FieldMetadata]] = None
+    params: dict[str, FieldMetadata] = {}
+    inputs: dict[str, FieldMetadata] = {}
+    outputs: dict[str, FieldMetadata] = {}
+
+    def add_output(self, output: FieldMetadata):
+        self.outputs[output.name] = output
+
+    def add_param(self, param: FieldMetadata):
+        self.params[param.name] = param
 
 
 class FunctionMetaData(MetaDataBase):
@@ -71,7 +80,7 @@ class FunctionMetaData(MetaDataBase):
 
 
 class ModelMetaData(FunctionMetaData):
-    startup_params: Optional[list[FieldMetadata]] = None
+    startup_params: dict[str, FieldMetadata] = {}
 
 
 class Method(str, Enum):
