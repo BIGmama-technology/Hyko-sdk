@@ -3,6 +3,8 @@ from typing import Annotated, Any, Optional, Union
 
 from pydantic import BaseModel, Discriminator, Tag, computed_field
 
+from hyko_sdk.components.utils import to_display_name
+
 
 class Ext(str, Enum):
     TXT = "txt"
@@ -88,6 +90,11 @@ class SubField(BaseModel):
     type: str
     name: str
     description: str
+
+    @computed_field
+    @property
+    def display_name(self) -> str:
+        return to_display_name(self.name)
 
     component: Optional["Components"] = None
 
