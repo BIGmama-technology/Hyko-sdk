@@ -10,11 +10,11 @@ from pydantic import (
     field_validator,
 )
 
-from .components import (
+from .components.components import (
     Components,
 )
+from .components.utils import to_display_name
 from .json_schema import Item, PortType, Ref
-from .utils import to_display_name
 
 
 class Category(str, Enum):
@@ -34,7 +34,7 @@ class FieldMetadata(BaseModel):
     def display_name(self) -> str:
         return to_display_name(self.name)
 
-    description: Optional[str] = None
+    description: str
     default: Optional[Any] = None
     value: Optional[Any] = None
 

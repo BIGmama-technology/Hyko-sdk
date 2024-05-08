@@ -15,7 +15,7 @@ from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
-from .components import Ext
+from .components.components import Ext
 from .models import StorageConfig
 from .utils import extension_to_mimetype
 

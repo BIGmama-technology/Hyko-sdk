@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from PIL import Image as PIL_Image
 
-from hyko_sdk.components import Ext
+from hyko_sdk.components.components import Ext
 from hyko_sdk.io import Audio, Image
 
 
