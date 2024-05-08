@@ -127,7 +127,7 @@ class Image(HykoBaseType):
     ) -> "Image":
         file = io.BytesIO()
         img = PIL_Image.fromarray(arr)  # type: ignore
-        img.save(file, format=encoding.value)
+        img.save(file, format=encoding.value)  # type: ignore
 
         return await Image(
             obj_ext=encoding,
@@ -141,7 +141,7 @@ class Image(HykoBaseType):
         encoding: Ext = Ext.PNG,
     ) -> "Image":
         file = io.BytesIO()
-        img.save(file, format=encoding.value)
+        img.save(file, format=encoding.value)  # type: ignore
 
         return await Image(
             obj_ext=encoding,
@@ -152,7 +152,7 @@ class Image(HykoBaseType):
     async def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
         data = await self.get_data()
         img_bytes_io = io.BytesIO(data)
-        img = PIL_Image.open(img_bytes_io)
+        img = PIL_Image.open(img_bytes_io)  # type: ignore
         img = np.asarray(img)
         if keep_alpha_if_png:
             return img
@@ -161,7 +161,7 @@ class Image(HykoBaseType):
     async def to_pil(self) -> PIL_Image.Image:
         data = await self.get_data()
         img_bytes_io = io.BytesIO(data)
-        img = PIL_Image.open(img_bytes_io)
+        img = PIL_Image.open(img_bytes_io)  # type: ignore
         return img
 
 

@@ -48,7 +48,7 @@ def mock_get_png(sample_pil_image_data: PILImage):
     with mock.patch("httpx.AsyncClient.get") as mock_post:
         # Setup a mock response object
         file = io.BytesIO()
-        sample_pil_image_data.save(file, format="PNG")
+        sample_pil_image_data.save(file, format="PNG")  # type: ignore
         img_byte = file.getvalue()
 
         mock_response = mock.Mock()
@@ -170,7 +170,7 @@ def sample_audio_data():
 def sample_pil_image_data() -> PILImage:
     width, height = 100, 100
     nd_image = np.zeros((height, width, 3), dtype=np.uint8)
-    pil_image = PIL.Image.fromarray(nd_image)
+    pil_image = PIL.Image.fromarray(nd_image)  # type: ignore
     return pil_image
 
 
