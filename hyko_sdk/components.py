@@ -60,10 +60,6 @@ class Component(BaseModel):
         return self.__class__.__name__
 
 
-class Blank(Component):
-    pass
-
-
 class Slider(Component):
     leq: int
     geq: int
@@ -93,7 +89,7 @@ class SubField(BaseModel):
     name: str
     description: str
 
-    component: "Components"
+    component: Optional["Components"] = None
 
 
 class StorageSelect(Component):
@@ -125,7 +121,7 @@ class ComplexComponent(Component):
 
 
 class ListComponent(Component):
-    item_component: "Components"
+    item_component: Optional["Components"] = None
 
 
 def get_name(v: Any):
@@ -144,7 +140,6 @@ Components = Annotated[
         Annotated[TextField, Tag("TextField")],
         Annotated[NumberField, Tag("NumberField")],
         Annotated[ComplexComponent, Tag("ComplexComponent")],
-        Annotated[Blank, Tag("Blank")],
         Annotated[ListComponent, Tag("ListComponent")],
         Annotated[StorageSelect, Tag("StorageSelect")],
         Annotated[ImagePreview, Tag("ImagePreview")],
@@ -157,7 +152,7 @@ Components = Annotated[
 ]
 
 
-def set_default_component(type: Optional[PortType]) -> Components:
+def set_default_component(type: Optional[PortType]) -> Components | None:
     match type:
         case PortType.INTEGER:
             return NumberField(placeholder="Number field.")
@@ -170,4 +165,4 @@ def set_default_component(type: Optional[PortType]) -> Components:
         case PortType.IMAGE:
             return StorageSelect(supported_ext=[Ext.PNG, Ext.JPG, Ext.JPEG])
         case _:
-            return Blank()
+            return None
