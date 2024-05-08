@@ -85,6 +85,10 @@ class TextField(Component):
 class NumberField(Component):
     placeholder: str
 
+    leq: Optional[int] = None
+    geq: Optional[int] = None
+    step: Optional[float] = None
+
 
 class SubField(BaseModel):
     type: str
