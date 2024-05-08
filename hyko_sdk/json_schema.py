@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.json_schema import GenerateJsonSchema, JsonSchemaMode
 from pydantic_core import CoreSchema
 
-from .components import (
+from .components.components import (
     ComplexComponent,
     Components,
     ListComponent,
@@ -89,6 +89,18 @@ class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
                 _def = json_schema.defs[property.all_of[0].ref]
                 if isinstance(_def, EnumDef):
                     property.component = Select(choices=_def.enum)
+                else:
+                    fields = [
+                        SubField(name=name, **prop.model_dump())
+                        if prop.component
+                        else SubField(
+                            name=name,
+                            component=set_default_component(prop.type),
+                            **prop.model_dump(exclude_none=True),
+                        )
+                        for name, prop in _def.properties.items()
+                    ]
+                    property.component = ComplexComponent(fields=fields)
 
             elif property.ref and json_schema.defs:
                 _def = json_schema.defs[property.ref]
