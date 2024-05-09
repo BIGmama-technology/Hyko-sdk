@@ -2,7 +2,7 @@ import asyncio
 import io
 import os
 from typing import Any, Optional, Self
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import aiofiles
 import httpx
@@ -11,14 +11,13 @@ import soundfile  # type: ignore
 from fastapi import HTTPException, status
 from numpy.typing import NDArray
 from PIL import Image as PIL_Image
-from pydantic import (
-    GetCoreSchemaHandler,
-    GetJsonSchemaHandler,
-)
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
-from .models import Ext, StorageConfig, extension_to_mimetype
+from .components.components import Ext
+from .models import StorageConfig
+from .utils import extension_to_mimetype
 
 
 class HykoBaseType:
@@ -45,14 +44,6 @@ class HykoBaseType:
             },
             timeout=10,
         )
-
-    @staticmethod
-    def validate_object(val: Any) -> Any:
-        ...
-
-    @staticmethod
-    def validate_file_name(file_name: str) -> Any:
-        ...
 
     def get_name(self) -> str:
         return self.file_name
@@ -108,7 +99,6 @@ class HykoBaseType:
         json_schema = core_schema.chain_schema(
             [
                 core_schema.str_schema(),
-                core_schema.no_info_plain_validator_function(cls.validate_file_name),
             ],
             serialization=core_schema.plain_serializer_function_ser_schema(
                 cls.get_name
@@ -118,7 +108,6 @@ class HykoBaseType:
         python_schema = core_schema.union_schema(
             [
                 json_schema,
-                core_schema.no_info_plain_validator_function(cls.validate_object),
             ],
             serialization=core_schema.plain_serializer_function_ser_schema(
                 cls.get_name
@@ -132,62 +121,13 @@ class HykoBaseType:
 
 class Image(HykoBaseType):
     @staticmethod
-    def validate_object(val: "Image"):
-        file_name = val.file_name
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [
-            Ext.PNG,
-            Ext.JPEG,
-            Ext.MPEG,
-            Ext.TIFF,
-            Ext.TIF,
-            Ext.BMP,
-            Ext.JP2,
-            Ext.DIB,
-            Ext.PGM,
-            Ext.PPM,
-            Ext.PNM,
-            Ext.RAS,
-            Ext.HDR,
-            Ext.WEBP,
-            Ext.JPG,
-        ], "Invalid file extension for Image error"
-        return Image(obj_ext=obj_ext, file_name=file_name)
-
-    @staticmethod
-    def validate_file_name(file_name: str):
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [
-            Ext.PNG,
-            Ext.JPEG,
-            Ext.MPEG,
-            Ext.TIFF,
-            Ext.TIF,
-            Ext.BMP,
-            Ext.JP2,
-            Ext.DIB,
-            Ext.PGM,
-            Ext.PPM,
-            Ext.PNM,
-            Ext.RAS,
-            Ext.HDR,
-            Ext.WEBP,
-            Ext.JPG,
-        ], "Invalid file extension for Image error"
-        return Image(obj_ext=obj_ext, file_name=file_name)
-
-    @staticmethod
     async def from_ndarray(
         arr: np.ndarray[Any, Any],
         encoding: Ext = Ext.PNG,
     ) -> "Image":
         file = io.BytesIO()
         img = PIL_Image.fromarray(arr)  # type: ignore
-        img.save(file, format=encoding.value)
+        img.save(file, format=encoding.value)  # type: ignore
 
         return await Image(
             obj_ext=encoding,
@@ -201,7 +141,7 @@ class Image(HykoBaseType):
         encoding: Ext = Ext.PNG,
     ) -> "Image":
         file = io.BytesIO()
-        img.save(file, format=encoding.value)
+        img.save(file, format=encoding.value)  # type: ignore
 
         return await Image(
             obj_ext=encoding,
@@ -212,7 +152,7 @@ class Image(HykoBaseType):
     async def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
         data = await self.get_data()
         img_bytes_io = io.BytesIO(data)
-        img = PIL_Image.open(img_bytes_io)
+        img = PIL_Image.open(img_bytes_io)  # type: ignore
         img = np.asarray(img)
         if keep_alpha_if_png:
             return img
@@ -221,36 +161,11 @@ class Image(HykoBaseType):
     async def to_pil(self) -> PIL_Image.Image:
         data = await self.get_data()
         img_bytes_io = io.BytesIO(data)
-        img = PIL_Image.open(img_bytes_io)
+        img = PIL_Image.open(img_bytes_io)  # type: ignore
         return img
 
 
 class Audio(HykoBaseType):
-    @staticmethod
-    def validate_object(val: "Audio"):
-        file_name = val.file_name
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [
-            Ext.MP3,
-            Ext.WEBM,
-            Ext.WAV,
-        ], "Invalid file extension for Audio error"
-        return Audio(obj_ext=obj_ext, file_name=file_name)
-
-    @staticmethod
-    def validate_file_name(file_name: str):
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [
-            Ext.MP3,
-            Ext.WEBM,
-            Ext.WAV,
-        ], "Invalid file extension for Audio error"
-        return Audio(obj_ext=obj_ext, file_name=file_name)
-
     @staticmethod
     async def from_ndarray(arr: np.ndarray[Any, Any], sampling_rate: int) -> "Audio":
         file = io.BytesIO()
@@ -308,54 +223,12 @@ class Audio(HykoBaseType):
 
 
 class Video(HykoBaseType):
-    @staticmethod
-    def validate_object(val: "Video"):
-        file_name = val.file_name
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [
-            Ext.MP4,
-            Ext.WEBM,
-            Ext.AVI,
-            Ext.MKV,
-            Ext.MOV,
-            Ext.WMV,
-            Ext.GIF,
-        ], "Invalid file extension for Video error"
-        return Video(obj_ext=obj_ext, file_name=file_name)
-
-    @staticmethod
-    def validate_file_name(file_name: str):
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [
-            Ext.MP4,
-            Ext.WEBM,
-            Ext.AVI,
-            Ext.MKV,
-            Ext.MOV,
-            Ext.WMV,
-            Ext.GIF,
-        ], "Invalid file extension for Video error"
-        return Video(obj_ext=obj_ext, file_name=file_name)
+    pass
 
 
 class PDF(HykoBaseType):
-    @staticmethod
-    def validate_object(val: "PDF"):
-        file_name = val.file_name
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
-        return PDF(obj_ext=obj_ext, file_name=file_name)
+    pass
 
-    @staticmethod
-    def validate_file_name(file_name: str):
-        obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
-        obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
-        return PDF(obj_ext=obj_ext, file_name=file_name)
+
+class CSV(HykoBaseType):
+    pass

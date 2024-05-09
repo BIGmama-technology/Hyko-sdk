@@ -4,19 +4,24 @@ from typing import Any, Callable, Coroutine, Type, TypeVar
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from pydantic.json_schema import GenerateJsonSchema
 
-from hyko_sdk.models import StorageConfig
-
+from .json_schema import (
+    CustomJsonSchema,
+    JsonSchemaGenerator,
+    JsonSchemaGeneratorWithComponents,
+)
 from .models import (
     APIMetaData,
     Category,
+    FieldMetadata,
     FunctionMetaData,
-    HykoJsonSchema,
+    IOMetaData,
     MetaDataBase,
     ModelMetaData,
+    StorageConfig,
     UtilsMetaData,
 )
-from .utils import to_friendly_types
 
 InputsType = TypeVar("InputsType", bound="BaseModel")
 ParamsType = TypeVar("ParamsType", bound="BaseModel")
@@ -35,35 +40,47 @@ class ToolkitBase:
         self,
         name: str,
         task: str,
-        desc: str,
+        description: str,
     ):
         self.category: Category = Category.FUNCTION
-        self.desc = desc
+        self.desc = description
         self.name = name
         self.task = task
-        self.inputs = None
-        self.outputs = None
-        self.params = None
+        self.inputs = {}
+        self.outputs = {}
+        self.params = {}
+
+    def fields_to_metadata(
+        self,
+        model: Type[BaseModel],
+        schema_generator: type[GenerateJsonSchema] = JsonSchemaGeneratorWithComponents,
+    ):
+        schema = CustomJsonSchema.model_validate(
+            model.model_json_schema(
+                schema_generator=schema_generator,
+                ref_template="{model}",
+            )
+        )
+        return {
+            field: FieldMetadata(
+                name=field,
+                **prop.model_dump(),
+            )
+            for field, prop in schema.properties.items()
+        }
 
     def set_input(self, model: T) -> T:
-        self.inputs = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
-        )
+        self.inputs = self.fields_to_metadata(model)
         return model
 
     def set_output(self, model: T) -> T:
-        self.outputs = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
+        self.outputs = self.fields_to_metadata(
+            model, schema_generator=JsonSchemaGenerator
         )
         return model
 
     def set_param(self, model: T) -> T:
-        self.params = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
-        )
+        self.params = self.fields_to_metadata(model)
         return model
 
     def get_base_metadata(self):
@@ -78,12 +95,32 @@ class ToolkitBase:
         )
 
     def dump_metadata(self) -> str:
-        metadata = MetaDataBase(
-            **self.get_base_metadata().model_dump(exclude_none=True)
+        metadata = self.get_base_metadata()
+        return metadata.model_dump_json(exclude_none=True)
+
+
+class ToolkitIO(ToolkitBase):
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+    ):
+        ToolkitBase.__init__(self, name, task, description)
+
+        self.category = Category.IO
+
+    def set_output(self, model: T) -> T:
+        self.outputs = self.fields_to_metadata(
+            model, schema_generator=JsonSchemaGeneratorWithComponents
         )
-        return metadata.model_dump_json(
-            exclude_none=True,
-            by_alias=True,
+        return model
+
+    def get_metadata(self) -> IOMetaData:
+        base_metadata = self.get_base_metadata()
+
+        return IOMetaData(
+            **base_metadata.model_dump(exclude_none=True),
         )
 
 
@@ -176,13 +213,10 @@ class ToolkitModel(ToolkitFunction):
         )
         self.category = Category.MODEL
         self.started: bool = False
-        self.startup_params = None
+        self.startup_params = {}
 
     def set_startup_params(self, model: T) -> T:
-        self.startup_params = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
-        )
+        self.startup_params = self.fields_to_metadata(model)
         return model
 
     def on_startup(self, f: OnStartupFuncType[ParamsType]):
@@ -228,23 +262,17 @@ class ToolkitModel(ToolkitFunction):
 
 class ToolkitAPI(ToolkitBase):
     def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, desc=description)
+        super().__init__(name=name, task=task, description=description)
         self.category = Category.API
 
     def set_input(self, model: T) -> T:
         self.inputs_model = model
-        self.inputs = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
-        )
+        self.inputs = self.fields_to_metadata(model)
         return model
 
     def set_param(self, model: T) -> T:
         self.params_model = model
-        self.params = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
-        )
+        self.params = self.fields_to_metadata(model)
         return model
 
     def on_call(self, f: OnCallType[...]):
