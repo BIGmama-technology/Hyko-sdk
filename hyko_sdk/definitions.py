@@ -10,6 +10,7 @@ from hyko_sdk.models import StorageConfig
 from .models import (
     APIMetaData,
     Category,
+    CoreModel,
     FunctionMetaData,
     HykoJsonSchema,
     MetaDataBase,
@@ -230,6 +231,8 @@ class ToolkitAPI(ToolkitBase):
     def __init__(self, name: str, task: str, description: str):
         super().__init__(name=name, task=task, desc=description)
         self.category = Category.API
+        self.inputs_model = CoreModel
+        self.params_model = CoreModel
 
     def set_input(self, model: T) -> T:
         self.inputs_model = model
