@@ -22,7 +22,7 @@ class Category(str, Enum):
     FUNCTION = "functions"
     API = "apis"
     UTILS = "utils"
-    IO = "IO"
+    IO = "io"
 
 
 class FieldMetadata(BaseModel):
