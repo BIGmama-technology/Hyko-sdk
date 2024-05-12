@@ -73,6 +73,8 @@ class JsonSchemaGenerator(GenerateJsonSchema):
                 _def = json_schema.defs[property.all_of[0].ref]
                 if isinstance(_def, EnumDef):
                     property.type = _def.type
+                else:
+                    property.type = PortType.OBJECT
 
             elif property.ref and json_schema.defs:
                 property.type = PortType.OBJECT
