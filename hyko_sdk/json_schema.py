@@ -140,7 +140,14 @@ class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
                             item_component=ComplexComponent(fields=fields)
                         )
                     else:
-                        item_component = set_default_component(items.type)
+                        if isinstance(items.items, Item):
+                            item_component = ListComponent(
+                                item_component=set_default_component(items.items.type)
+                            )
+                        else:
+                            item_component = ListComponent(
+                                item_component=set_default_component(items.type)
+                            )
 
                     property.component = ListComponent(item_component=item_component)
 
