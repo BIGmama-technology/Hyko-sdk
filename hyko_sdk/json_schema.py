@@ -17,7 +17,7 @@ from .components.components import (
 
 class Item(BaseModel):
     type: PortType = PortType.ANY
-    items: Optional["Item"] = None
+    items: Optional["Item | Ref"] = None
 
 
 class Ref(BaseModel):
@@ -83,7 +83,7 @@ class JsonSchemaGenerator(GenerateJsonSchema):
 
 
 class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
-    def generate(self, schema: CoreSchema, mode: JsonSchemaMode = "validation"):
+    def generate(self, schema: CoreSchema, mode: JsonSchemaMode = "validation"):  # noqa: C901
         json_schema = super().generate(schema, mode)
         json_schema = CustomJsonSchema.model_validate(json_schema)
         for _, property in json_schema.properties.items():
@@ -122,9 +122,34 @@ class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
             if property.type == PortType.ARRAY:
                 items = property.items
                 if isinstance(items, Item):
-                    property.component = ListComponent(
-                        item_component=set_default_component(items.type)
-                    )
+                    if isinstance(items.items, Ref) and json_schema.defs:
+                        _def = json_schema.defs[items.items.ref]
+                        assert isinstance(_def, ModelDef)
+                        fields = [
+                            SubField(name=name, **prop.model_dump())
+                            if prop.component
+                            else SubField(
+                                name=name,
+                                component=set_default_component(prop.type),
+                                **prop.model_dump(exclude_none=True),
+                            )
+                            for name, prop in _def.properties.items()
+                        ]
+
+                        item_component = ListComponent(
+                            item_component=ComplexComponent(fields=fields)
+                        )
+                    else:
+                        item_component = set_default_component(items.type)
+
+                    property.component = ListComponent(item_component=item_component)
+
+                    if items.type == PortType.ANY or (
+                        isinstance(items.items, Item)
+                        and items.items.type == PortType.ANY
+                    ):
+                        property.component = None
+
                 elif isinstance(items, Ref) and json_schema.defs:
                     _def = json_schema.defs[items.ref]
                     assert isinstance(_def, ModelDef)
