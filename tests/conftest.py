@@ -104,7 +104,10 @@ def startup():
 @pytest.fixture
 def toolkit_base():
     return ToolkitBase(
-        name="Test Toolkit", task="Testing", description="A test toolkit base"
+        name="Test Toolkit",
+        task="Testing",
+        description="A test toolkit base",
+        cost=1,
     )
 
 
@@ -114,6 +117,7 @@ def toolkit_function():
         name="test_function",
         task="task",
         description="A test function",
+        cost=2,
         docker_context="test_context",
         absolute_dockerfile_path="test_dockerfile_path",
     )
@@ -125,6 +129,7 @@ def toolkit_model():
         name="test_function",
         task="task",
         description="Description",
+        cost=0,
         docker_context="test_context",
         absolute_dockerfile_path="test_dockerfile_path",
     )
@@ -132,7 +137,12 @@ def toolkit_model():
 
 @pytest.fixture
 def toolkit_api():
-    return ToolkitAPI(name="test", task="task", description="Description")
+    return ToolkitAPI(
+        name="test",
+        task="task",
+        description="Description",
+        cost=2,
+    )
 
 
 @pytest.fixture
