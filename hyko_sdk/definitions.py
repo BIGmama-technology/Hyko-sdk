@@ -41,11 +41,13 @@ class ToolkitBase:
         name: str,
         task: str,
         description: str,
+        cost: int,
     ):
         self.category: Category = Category.FUNCTION
         self.desc = description
         self.name = name
         self.task = task
+        self.cost = cost
         self.inputs = {}
         self.outputs = {}
         self.params = {}
@@ -92,6 +94,7 @@ class ToolkitBase:
             inputs=self.inputs,
             params=self.params,
             outputs=self.outputs,
+            cost=self.cost,
         )
 
     def dump_metadata(self) -> str:
@@ -105,8 +108,9 @@ class ToolkitIO(ToolkitBase):
         name: str,
         task: str,
         description: str,
+        cost: int,
     ):
-        ToolkitBase.__init__(self, name, task, description)
+        ToolkitBase.__init__(self, name, task, description, cost)
 
         self.category = Category.IO
 
@@ -130,10 +134,11 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         name: str,
         task: str,
         description: str,
+        cost: int,
         absolute_dockerfile_path: str,
         docker_context: str,
     ):
-        ToolkitBase.__init__(self, name, task, description)
+        ToolkitBase.__init__(self, name, task, description, cost)
         self.absolute_dockerfile_path = absolute_dockerfile_path
         self.docker_context = docker_context
         FastAPI.__init__(self)
@@ -201,6 +206,7 @@ class ToolkitModel(ToolkitFunction):
         name: str,
         task: str,
         description: str,
+        cost: int,
         absolute_dockerfile_path: str,
         docker_context: str,
     ):
@@ -208,6 +214,7 @@ class ToolkitModel(ToolkitFunction):
             name=name,
             task=task,
             description=description,
+            cost=cost,
             absolute_dockerfile_path=absolute_dockerfile_path,
             docker_context=docker_context,
         )
@@ -261,8 +268,19 @@ class ToolkitModel(ToolkitFunction):
 
 
 class ToolkitAPI(ToolkitBase):
-    def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, description=description)
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+        cost: int,
+    ):
+        super().__init__(
+            name=name,
+            task=task,
+            description=description,
+            cost=cost,
+        )
         self.category = Category.API
 
     def set_input(self, model: T) -> T:
@@ -295,8 +313,14 @@ class ToolkitAPI(ToolkitBase):
 
 
 class ToolkitUtils(ToolkitAPI):
-    def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, description=description)
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+        cost: int,
+    ):
+        super().__init__(name=name, task=task, description=description, cost=cost)
         self.category = Category.UTILS
 
     def get_metadata(self) -> UtilsMetaData:

@@ -62,6 +62,8 @@ class MetaDataBase(BaseModel):
     task: str
     description: str
     category: Category
+    cost: int = 0
+
     icon: Optional[str] = None
 
     params: dict[str, FieldMetadata] = {}
