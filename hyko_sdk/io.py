@@ -2,7 +2,7 @@ import asyncio
 import io
 import os
 from typing import Any, Optional, Self
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import aiofiles
 import httpx
@@ -44,6 +44,12 @@ class HykoBaseType:
             },
             timeout=10,
         )
+
+    @staticmethod
+    def validate_object(val: Any) -> Any: ...
+
+    @staticmethod
+    def validate_file_name(file_name: str) -> Any: ...
 
     def get_name(self) -> str:
         return self.file_name
@@ -99,6 +105,7 @@ class HykoBaseType:
         json_schema = core_schema.chain_schema(
             [
                 core_schema.str_schema(),
+                core_schema.no_info_plain_validator_function(cls.validate_file_name),
             ],
             serialization=core_schema.plain_serializer_function_ser_schema(
                 cls.get_name
@@ -108,6 +115,7 @@ class HykoBaseType:
         python_schema = core_schema.union_schema(
             [
                 json_schema,
+                core_schema.no_info_plain_validator_function(cls.validate_object),
             ],
             serialization=core_schema.plain_serializer_function_ser_schema(
                 cls.get_name
@@ -120,6 +128,55 @@ class HykoBaseType:
 
 
 class Image(HykoBaseType):
+    @staticmethod
+    def validate_object(val: "Image"):
+        file_name = val.file_name
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [
+            Ext.PNG,
+            Ext.JPEG,
+            Ext.MPEG,
+            Ext.TIFF,
+            Ext.TIF,
+            Ext.BMP,
+            Ext.JP2,
+            Ext.DIB,
+            Ext.PGM,
+            Ext.PPM,
+            Ext.PNM,
+            Ext.RAS,
+            Ext.HDR,
+            Ext.WEBP,
+            Ext.JPG,
+        ], "Invalid file extension for Image error"
+        return Image(obj_ext=obj_ext, file_name=file_name)
+
+    @staticmethod
+    def validate_file_name(file_name: str):
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [
+            Ext.PNG,
+            Ext.JPEG,
+            Ext.MPEG,
+            Ext.TIFF,
+            Ext.TIF,
+            Ext.BMP,
+            Ext.JP2,
+            Ext.DIB,
+            Ext.PGM,
+            Ext.PPM,
+            Ext.PNM,
+            Ext.RAS,
+            Ext.HDR,
+            Ext.WEBP,
+            Ext.JPG,
+        ], "Invalid file extension for Image error"
+        return Image(obj_ext=obj_ext, file_name=file_name)
+
     @staticmethod
     async def from_ndarray(
         arr: np.ndarray[Any, Any],
@@ -166,6 +223,31 @@ class Image(HykoBaseType):
 
 
 class Audio(HykoBaseType):
+    @staticmethod
+    def validate_object(val: "Audio"):
+        file_name = val.file_name
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [
+            Ext.MP3,
+            Ext.WEBM,
+            Ext.WAV,
+        ], "Invalid file extension for Audio error"
+        return Audio(obj_ext=obj_ext, file_name=file_name)
+
+    @staticmethod
+    def validate_file_name(file_name: str):
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [
+            Ext.MP3,
+            Ext.WEBM,
+            Ext.WAV,
+        ], "Invalid file extension for Audio error"
+        return Audio(obj_ext=obj_ext, file_name=file_name)
+
     @staticmethod
     async def from_ndarray(arr: np.ndarray[Any, Any], sampling_rate: int) -> "Audio":
         file = io.BytesIO()
@@ -223,12 +305,73 @@ class Audio(HykoBaseType):
 
 
 class Video(HykoBaseType):
-    pass
+    @staticmethod
+    def validate_object(val: "Video"):
+        file_name = val.file_name
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [
+            Ext.MP4,
+            Ext.WEBM,
+            Ext.AVI,
+            Ext.MKV,
+            Ext.MOV,
+            Ext.WMV,
+            Ext.GIF,
+        ], "Invalid file extension for Video error"
+        return Video(obj_ext=obj_ext, file_name=file_name)
+
+    @staticmethod
+    def validate_file_name(file_name: str):
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [
+            Ext.MP4,
+            Ext.WEBM,
+            Ext.AVI,
+            Ext.MKV,
+            Ext.MOV,
+            Ext.WMV,
+            Ext.GIF,
+        ], "Invalid file extension for Video error"
+        return Video(obj_ext=obj_ext, file_name=file_name)
 
 
 class PDF(HykoBaseType):
-    pass
+    @staticmethod
+    def validate_object(val: "PDF"):
+        file_name = val.file_name
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
+        return PDF(obj_ext=obj_ext, file_name=file_name)
+
+    @staticmethod
+    def validate_file_name(file_name: str):
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
+        return PDF(obj_ext=obj_ext, file_name=file_name)
 
 
 class CSV(HykoBaseType):
-    pass
+    @staticmethod
+    def validate_object(val: "CSV"):
+        file_name = val.file_name
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
+        return PDF(obj_ext=obj_ext, file_name=file_name)
+
+    @staticmethod
+    def validate_file_name(file_name: str):
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
+        return PDF(obj_ext=obj_ext, file_name=file_name)
