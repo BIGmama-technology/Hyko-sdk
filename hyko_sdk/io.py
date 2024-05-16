@@ -46,10 +46,12 @@ class HykoBaseType:
         )
 
     @staticmethod
-    def validate_object(val: Any) -> Any: ...
+    def validate_object(val: Any) -> Any:
+        ...
 
     @staticmethod
-    def validate_file_name(file_name: str) -> Any: ...
+    def validate_file_name(file_name: str) -> Any:
+        ...
 
     def get_name(self) -> str:
         return self.file_name
