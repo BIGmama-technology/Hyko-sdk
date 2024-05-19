@@ -88,6 +88,9 @@ class FunctionMetaData(MetaDataBase):
 class ModelMetaData(FunctionMetaData):
     startup_params: dict[str, FieldMetadata] = {}
 
+    def add_startup_param(self, new_param: FieldMetadata):
+        self.startup_params[new_param.name] = new_param
+
 
 class Method(str, Enum):
     get = "GET"

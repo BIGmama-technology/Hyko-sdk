@@ -76,6 +76,11 @@ class Select(Component):
     choices: list[str | int | float]
 
 
+class Search(Component):
+    placeholder: str = ""
+    results: list[str] = []
+
+
 class TextField(Component):
     placeholder: str
     multiline: bool = False
@@ -147,6 +152,7 @@ Components = Annotated[
     Union[
         Annotated[Toggle, Tag("Toggle")],
         Annotated[Select, Tag("Select")],
+        Annotated[Search, Tag("Search")],
         Annotated[Slider, Tag("Slider")],
         Annotated[TextField, Tag("TextField")],
         Annotated[NumberField, Tag("NumberField")],
