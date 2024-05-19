@@ -87,6 +87,8 @@ class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
         json_schema = super().generate(schema, mode)
         json_schema = CustomJsonSchema.model_validate(json_schema)
         for _, property in json_schema.properties.items():
+            if property.component:
+                continue
             if property.all_of and json_schema.defs:
                 _def = json_schema.defs[property.all_of[0].ref]
                 if isinstance(_def, EnumDef):
