@@ -33,10 +33,10 @@ class ToolkitBase:
         self,
         name: str,
         task: str,
-        desc: str,
+        description: str,
     ):
         self.category: Category = Category.FUNCTION
-        self.desc = desc
+        self.description = description
         self.name = name
         self.task = task
         self.inputs = None
@@ -71,7 +71,7 @@ class ToolkitBase:
             category=self.category,
             name=self.name,
             task=self.task,
-            description=self.desc,
+            description=self.description,
             inputs=self.inputs,
             params=self.params,
             outputs=self.outputs,
@@ -104,7 +104,7 @@ class ToolkitBase:
 
 class ToolkitAPI(ToolkitBase):
     def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, desc=description)
+        super().__init__(name=name, task=task, description=description)
         self.category = Category.API
 
     def get_metadata(self) -> APIMetaData:
@@ -125,9 +125,9 @@ class ToolkitFunction(ToolkitBase):
         self,
         name: str,
         task: str,
-        desc: str,
+        description: str,
     ):
-        super().__init__(name=name, task=task, desc=desc)
+        super().__init__(name=name, task=task, description=description)
         self.category = Category.FUNCTION
 
     def get_metadata(self) -> FunctionMetaData:
@@ -141,9 +141,9 @@ class ToolkitModel(ToolkitFunction):
         self,
         name: str,
         task: str,
-        desc: str,
+        description: str,
     ):
-        super().__init__(name=name, task=task, desc=desc)
+        super().__init__(name=name, task=task, description=description)
         self.category = Category.MODEL
         self.started: bool = False
 
