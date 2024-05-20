@@ -1,24 +1,41 @@
-from typing import Type
+from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import Field
+
+from .components.components import Components
 
 
-def to_friendly_types(pydantic_model: Type[BaseModel]):
-    out: dict[str, str] = {}
-    for field_name, field in pydantic_model.model_fields.items():
-        annotation = str(field.annotation).lower()
-        if "enum" in annotation:
-            out[field_name] = "enum"
-            continue
-        annotation = annotation.lstrip("<").rstrip(">")
-        annotation = annotation.replace("class ", "")
-        annotation = annotation.replace("hyko_sdk.io.", "")
-        annotation = annotation.replace("__main__.", "")
-        annotation = annotation.replace("typing.", "")
-        annotation = annotation.replace(" ", "")
-        annotation = annotation.replace("'", "")
-        annotation = annotation.replace("str", "text")
-        annotation = annotation.replace("int", "whole number")
-        annotation = annotation.replace("float", "decimal number")
-        out[field_name] = annotation
-    return out
+def field(
+    description: str,
+    default: Optional[Any] = None,
+    component: Optional[Components] = None,
+) -> Any:
+    return Field(
+        default=default,
+        description=description,
+        json_schema_extra={
+            "component": component.model_dump() if component else None,
+        },
+    )
+
+
+mimetype_to_extension = {
+    "text/plain": "txt",
+    "text/csv": "csv",
+    "application/pdf": "pdf",
+    "image/png": "png",
+    "image/jpeg": "jpeg",
+    "image/gif": "gif",
+    "image/bmp": "bmp",
+    "image/webp": "webp",
+    "audio/wav": "wav",
+    "audio/mpeg": "mp3",
+    "video/mp4": "mp4",
+    "video/vnd.avi": "avi",
+    "video/webm": "webm",
+    "video/mpeg": "mpeg",
+    "video/x-matroska": "mkv",
+    "video/quicktime": "mov",
+    "video/x-ms-wmv": "wmv",
+}
+extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}

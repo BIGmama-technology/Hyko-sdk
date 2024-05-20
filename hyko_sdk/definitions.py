@@ -1,20 +1,20 @@
 from typing import Any, Callable, Coroutine, Type, TypeVar
 
 from pydantic import BaseModel
+from pydantic.json_schema import GenerateJsonSchema
 
-from hyko_sdk.models import StorageConfig
-
+from .json_schema import (
+    CustomJsonSchema,
+    JsonSchemaGenerator,
+    JsonSchemaGeneratorWithComponents,
+)
 from .models import (
-    APIMetaData,
     Category,
     CoreModel,
-    FunctionMetaData,
-    HykoJsonSchema,
+    FieldMetadata,
     MetaDataBase,
-    ModelMetaData,
-    UtilsMetaData,
+    StorageConfig,
 )
-from .utils import to_friendly_types
 
 InputsType = TypeVar("InputsType", bound="BaseModel")
 ParamsType = TypeVar("ParamsType", bound="BaseModel")
@@ -34,39 +34,53 @@ class ToolkitBase:
         name: str,
         task: str,
         description: str,
+        cost: int,
     ):
         self.category: Category = Category.FUNCTION
         self.description = description
         self.name = name
         self.task = task
-        self.inputs = None
-        self.outputs = None
-        self.params = None
+        self.cost = cost
+        self.inputs = {}
+        self.outputs = {}
+        self.params = {}
         self.inputs_model = CoreModel
         self.params_model = CoreModel
 
-    def set_input(self, model: T) -> T:
-        self.inputs = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
+    def fields_to_metadata(
+        self,
+        model: Type[BaseModel],
+        schema_generator: type[GenerateJsonSchema] = JsonSchemaGeneratorWithComponents,
+    ):
+        schema = CustomJsonSchema.model_validate(
+            model.model_json_schema(
+                schema_generator=schema_generator,
+                ref_template="{model}",
+            )
         )
+        return {
+            field: FieldMetadata(
+                name=field,
+                **prop.model_dump(),
+            )
+            for field, prop in schema.properties.items()
+        }
+
+    def set_input(self, model: T) -> T:
+        self.inputs = self.fields_to_metadata(model)
         return model
 
     def set_output(self, model: T) -> T:
-        self.outputs = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
+        self.outputs = self.fields_to_metadata(
+            model, schema_generator=JsonSchemaGenerator
         )
         return model
 
     def set_param(self, model: T) -> T:
-        self.params = HykoJsonSchema(
-            **model.model_json_schema(),
-            friendly_types=to_friendly_types(model),
-        )
+        self.params = self.fields_to_metadata(model)
         return model
 
-    def get_base_metadata(self):
+    def get_metadata(self):
         return MetaDataBase(
             category=self.category,
             name=self.name,
@@ -75,6 +89,7 @@ class ToolkitBase:
             inputs=self.inputs,
             params=self.params,
             outputs=self.outputs,
+            cost=self.cost,
         )
 
     def on_call(self, f: OnCallType[...]):
@@ -93,31 +108,50 @@ class ToolkitBase:
         return self.call_(validated_inputs, validated_params)
 
     def dump_metadata(self) -> str:
-        metadata = MetaDataBase(
-            **self.get_base_metadata().model_dump(exclude_none=True)
+        metadata = self.get_metadata()
+        return metadata.model_dump_json(exclude_none=True)
+
+
+class ToolkitIO(ToolkitBase):
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+        cost: int,
+    ):
+        ToolkitBase.__init__(self, name, task, description, cost)
+
+        self.category = Category.IO
+
+    def set_output(self, model: T) -> T:
+        self.outputs = self.fields_to_metadata(
+            model, schema_generator=JsonSchemaGeneratorWithComponents
         )
-        return metadata.model_dump_json(
-            exclude_none=True,
-            by_alias=True,
-        )
+        return model
 
 
 class ToolkitAPI(ToolkitBase):
-    def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, description=description)
+    def __init__(self, name: str, task: str, description: str, cost: int):
+        super().__init__(
+            name=name,
+            task=task,
+            description=description,
+            cost=cost,
+        )
         self.category = Category.API
 
-    def get_metadata(self) -> APIMetaData:
-        return APIMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
 
-
-class ToolkitUtils(ToolkitAPI):
-    def __init__(self, name: str, task: str, description: str):
-        super().__init__(name=name, task=task, description=description)
+class ToolkitUtils(ToolkitBase):
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+        cost: int,
+    ):
+        super().__init__(name=name, task=task, description=description, cost=cost)
         self.category = Category.UTILS
-
-    def get_metadata(self) -> UtilsMetaData:
-        return UtilsMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
 
 
 class ToolkitFunction(ToolkitBase):
@@ -126,14 +160,10 @@ class ToolkitFunction(ToolkitBase):
         name: str,
         task: str,
         description: str,
+        cost: int,
     ):
-        super().__init__(name=name, task=task, description=description)
+        super().__init__(name=name, task=task, description=description, cost=cost)
         self.category = Category.FUNCTION
-
-    def get_metadata(self) -> FunctionMetaData:
-        return FunctionMetaData(
-            **self.get_base_metadata().model_dump(exclude_none=True)
-        )
 
 
 class ToolkitModel(ToolkitFunction):
@@ -142,17 +172,18 @@ class ToolkitModel(ToolkitFunction):
         name: str,
         task: str,
         description: str,
+        cost: int,
     ):
-        super().__init__(name=name, task=task, description=description)
+        super().__init__(name=name, task=task, description=description, cost=cost)
         self.category = Category.MODEL
         self.started: bool = False
 
-    def on_startup(self, f: OnStartupFuncType[BaseModel]):
+    def on_startup(self, f: OnStartupFuncType[...]):
         self.startup_ = f
 
-    def startup(self, params: dict[str, Any]):
-        validated_params = self.params_model(**params)
-        return self.startup_(validated_params)
+    async def startup(self, params: dict[str, Any]):
+        if self.started:
+            return
 
-    def get_metadata(self) -> ModelMetaData:
-        return ModelMetaData(**self.get_base_metadata().model_dump(exclude_none=True))
+        validated_params = self.params_model(**params)
+        return await self.startup_(validated_params)

@@ -10,7 +10,7 @@ from hyko_sdk.definitions import (
     ToolkitModel,
 )
 from hyko_sdk.models import (
-    HykoJsonSchema,
+    FieldMetadata,
     MetaDataBase,
     StorageConfig,
 )
@@ -19,38 +19,41 @@ from hyko_sdk.models import (
 # ToolkitBase Tests
 def test_toolkit_base_set_input(
     sample_io_data: Type[BaseModel],
-    sample_iop_data_json_schema: HykoJsonSchema,
     toolkit_base: ToolkitBase,
 ):
     input = toolkit_base.set_input(sample_io_data)
-    assert isinstance(toolkit_base.inputs, HykoJsonSchema)
+    assert toolkit_base.inputs
+    assert all(
+        isinstance(field, FieldMetadata) for field in toolkit_base.inputs.values()
+    )
     assert input == sample_io_data
-    assert toolkit_base.inputs == sample_iop_data_json_schema
 
 
 def test_toolkit_base_set_output(
     sample_io_data: Type[BaseModel],
-    sample_iop_data_json_schema: HykoJsonSchema,
     toolkit_base: ToolkitBase,
 ):
     output = toolkit_base.set_output(sample_io_data)
-    assert isinstance(toolkit_base.outputs, HykoJsonSchema)
+    assert toolkit_base.outputs
+    assert all(
+        isinstance(field, FieldMetadata) for field in toolkit_base.outputs.values()
+    )
     assert output == sample_io_data
-    assert toolkit_base.outputs == sample_iop_data_json_schema
 
 
 def test_toolkit_base_set_param(
     sample_io_data: Type[BaseModel],
-    sample_iop_data_json_schema: HykoJsonSchema,
     toolkit_base: ToolkitBase,
 ):
     param = toolkit_base.set_param(sample_io_data)
-    assert isinstance(toolkit_base.params, HykoJsonSchema)
+    assert toolkit_base.params
+    assert all(
+        isinstance(field, FieldMetadata) for field in toolkit_base.params.values()
+    )
     assert param == sample_io_data
-    assert toolkit_base.params == sample_iop_data_json_schema
 
 
-def test_get_base_metadata(
+def test_get_metadata(
     sample_io_data: Type[BaseModel],
     sample_param_data: Type[BaseModel],
     toolkit_base: ToolkitBase,
@@ -59,7 +62,7 @@ def test_get_base_metadata(
     toolkit_base.set_output(sample_io_data)
     toolkit_base.set_param(sample_param_data)
 
-    meta_data = toolkit_base.get_base_metadata()
+    meta_data = toolkit_base.get_metadata()
 
     assert isinstance(meta_data, MetaDataBase)
 

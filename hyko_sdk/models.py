@@ -1,99 +1,20 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Annotated, Any, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import (
+    BaseModel,
+    Discriminator,
+    Tag,
+    ValidationInfo,
+    computed_field,
+    field_validator,
+)
 
-
-class Ext(str, Enum):
-    TXT = "txt"
-    CSV = "csv"
-    PDF = "pdf"
-    PNG = "png"
-    JPEG = "jpeg"
-    MPEG = "mpeg"
-    WEBM = "webm"
-    WAV = "wav"
-    MP4 = "mp4"
-    MP3 = "mp3"
-    AVI = "avi"
-    MKV = "mkv"
-    MOV = "mov"
-    WMV = "wmv"
-    GIF = "gif"
-    JPG = "jpg"
-    TIFF = "tiff"
-    TIF = "tif"
-    BMP = "bmp"
-    JP2 = "jp2"
-    DIB = "dib"
-    PGM = "pgm"
-    PPM = "ppm"
-    PNM = "pnm"
-    RAS = "ras"
-    HDR = "hdr"
-    WEBP = "webp"
-
-
-mimetype_to_extension = {
-    "text/plain": "txt",
-    "text/csv": "csv",
-    "application/pdf": "pdf",
-    "image/png": "png",
-    "image/jpeg": "jpeg",
-    "image/gif": "gif",
-    "image/bmp": "bmp",
-    "image/webp": "webp",
-    "audio/wav": "wav",
-    "audio/mpeg": "mp3",
-    "video/mp4": "mp4",
-    "video/vnd.avi": "avi",
-    "video/webm": "webm",
-    "video/mpeg": "mpeg",
-    "video/x-matroska": "mkv",
-    "video/quicktime": "mov",
-    "video/x-ms-wmv": "wmv",
-}
-extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}
-
-
-class IOPortType(str, Enum):
-    BOOLEAN = "boolean"
-    NUMBER = "number"
-    INTEGER = "integer"
-    STRING = "string"
-    ARRAY = "array"
-    OBJECT = "object"
-
-
-class HykoExtraTypes(str, Enum):
-    IMAGE = "image"
-    AUDIO = "audio"
-    VIDEO = "video"
-    PDF = "pdf"
-    CSV = "csv"
-
-
-class Property(BaseModel):
-    type: Optional[IOPortType | HykoExtraTypes] = None
-    description: Optional[str] = None
-    all_of: Optional[list[dict[str, str]]] = Field(default=None, alias="allOf")
-    ref: Optional[str] = Field(default=None, alias="$ref")
-    default: Optional[Any] = None
-
-    enum: Optional[list[str]] = None
-    any_of: Optional[List["Property"]] = Field(default=None, alias="anyOf")
-
-    items: Optional["Property"] = None
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class HykoJsonSchema(BaseModel):
-    properties: Dict[str, Property]
-    defs: Optional[Dict[str, Property]] = Field(default=None, alias="$defs")
-    friendly_types: Dict[str, str]
-
-    model_config = ConfigDict(populate_by_name=True)
+from .components.components import (
+    Components,
+)
+from .components.utils import to_display_name
+from .json_schema import Item, PortType, Ref
 
 
 class Category(str, Enum):
@@ -101,21 +22,62 @@ class Category(str, Enum):
     FUNCTION = "functions"
     API = "apis"
     UTILS = "utils"
+    IO = "io"
+
+
+class FieldMetadata(BaseModel):
+    type: PortType
+    name: str
+
+    @computed_field
+    @property
+    def display_name(self) -> str:
+        return to_display_name(self.name)
+
+    description: str
+    default: Optional[Any] = None
+    value: Optional[Any] = None
+
+    items: Optional[Item | Ref] = None
+
+    @field_validator("items")
+    @classmethod
+    def check_items(cls, v: Optional[Item], info: ValidationInfo) -> Optional[Item]:
+        if info.data.get("type") == PortType.ARRAY and v is None:
+            raise ValueError("Items must be provided when type is ARRAY")
+        return v
+
+    component: Optional[Components] = None
+
+    callback_id: Optional[str] = None
 
 
 class MetaDataBase(BaseModel):
-    category: Category
-    name: str
-    task: str
-    description: str
-    params: Optional[HykoJsonSchema] = None
-    inputs: Optional[HykoJsonSchema] = None
-    outputs: Optional[HykoJsonSchema] = None
-
     @computed_field
     @property
     def image(self) -> str:
         return self.category.value + "/" + self.task + "/" + self.name
+
+    name: str
+    task: str
+    description: str
+    category: Category
+    cost: int = 0
+
+    icon: Optional[str] = None
+
+    params: dict[str, FieldMetadata] = {}
+    inputs: dict[str, FieldMetadata] = {}
+    outputs: dict[str, FieldMetadata] = {}
+
+    def add_input(self, new_input: FieldMetadata):
+        self.inputs[new_input.name] = new_input
+
+    def add_output(self, new_output: FieldMetadata):
+        self.outputs[new_output.name] = new_output
+
+    def add_param(self, new_param: FieldMetadata):
+        self.params[new_param.name] = new_param
 
 
 class FunctionMetaData(MetaDataBase):
@@ -123,7 +85,10 @@ class FunctionMetaData(MetaDataBase):
 
 
 class ModelMetaData(FunctionMetaData):
-    startup_params: Optional[HykoJsonSchema] = None
+    startup_params: dict[str, FieldMetadata] = {}
+
+    def add_startup_param(self, new_param: FieldMetadata):
+        self.startup_params[new_param.name] = new_param
 
 
 class Method(str, Enum):
@@ -140,6 +105,27 @@ class APIMetaData(MetaDataBase):
 
 class UtilsMetaData(APIMetaData):
     pass
+
+
+class IOMetaData(MetaDataBase):
+    pass
+
+
+def get_category(v: Any):
+    """Category discriminator function."""
+    return v.get("category")
+
+
+MetaData = Annotated[
+    Union[
+        Annotated[ModelMetaData, Tag(Category.MODEL)],
+        Annotated[FunctionMetaData, Tag(Category.FUNCTION)],
+        Annotated[UtilsMetaData, Tag(Category.UTILS)],
+        Annotated[APIMetaData, Tag(Category.API)],
+        Annotated[IOMetaData, Tag(Category.IO)],
+    ],
+    Discriminator(get_category),
+]
 
 
 class StorageConfig(BaseModel):
