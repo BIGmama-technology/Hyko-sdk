@@ -119,8 +119,7 @@ class MetaDataBase(BaseModel):
 
 
 class FunctionMetaData(MetaDataBase):
-    dockerfile_path: str
-    docker_context: str
+    pass
 
 
 class ModelMetaData(FunctionMetaData):
