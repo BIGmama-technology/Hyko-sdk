@@ -1,13 +1,12 @@
 from typing import Type
 
+import pytest
 from pydantic import BaseModel
 
 from hyko_sdk.definitions import (
     OnCallType,
-    ToolkitAPI,
     ToolkitBase,
     ToolkitFunction,
-    ToolkitModel,
 )
 from hyko_sdk.models import (
     FieldMetadata,
@@ -95,7 +94,8 @@ def test_function_dump_metadata(
     assert isinstance(dumped_meta_data, str)
 
 
-def toolkit_test(
+@pytest.mark.asyncio
+async def toolkit_test(
     toolkit: ToolkitBase,
     base_model_child: Type[BaseModel],
     sample_call_fn_with_params: OnCallType[...],
@@ -108,7 +108,7 @@ def toolkit_test(
     toolkit.on_call(sample_call_fn_with_params)
 
     # Call the execute function with test inputs, params, and storage config
-    result = toolkit.call(
+    result = await toolkit.call(
         inputs=base_model_child(key="key").model_dump(),
         params=base_model_child(key="output").model_dump(),
         storage_config=StorageConfig(
@@ -120,27 +120,3 @@ def toolkit_test(
 
     # Assert the expected result
     assert result == "test call"
-
-
-def test_api_execute(
-    toolkit_api: ToolkitAPI,
-    base_model_child: Type[BaseModel],
-    sample_call_fn_with_params: OnCallType[...],
-):
-    toolkit_test(toolkit_api, base_model_child, sample_call_fn_with_params)
-
-
-def test_functions_execute(
-    toolkit_function: ToolkitFunction,
-    base_model_child: Type[BaseModel],
-    sample_call_fn_with_params: OnCallType[...],
-):
-    toolkit_test(toolkit_function, base_model_child, sample_call_fn_with_params)
-
-
-def test_model_execute(
-    toolkit_model: ToolkitModel,
-    base_model_child: Type[BaseModel],
-    sample_call_fn_with_params: OnCallType[...],
-):
-    toolkit_test(toolkit_model, base_model_child, sample_call_fn_with_params)

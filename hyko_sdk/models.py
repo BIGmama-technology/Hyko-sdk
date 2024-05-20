@@ -1,10 +1,8 @@
 from enum import Enum
-from typing import Annotated, Any, Optional, Union
+from typing import Any, Optional
 
 from pydantic import (
     BaseModel,
-    Discriminator,
-    Tag,
     ValidationInfo,
     computed_field,
     field_validator,
@@ -80,17 +78,6 @@ class MetaDataBase(BaseModel):
         self.params[new_param.name] = new_param
 
 
-class FunctionMetaData(MetaDataBase):
-    pass
-
-
-class ModelMetaData(FunctionMetaData):
-    startup_params: dict[str, FieldMetadata] = {}
-
-    def add_startup_param(self, new_param: FieldMetadata):
-        self.startup_params[new_param.name] = new_param
-
-
 class Method(str, Enum):
     get = "GET"
     post = "POST"
@@ -99,33 +86,9 @@ class Method(str, Enum):
     delete = "DELETE"
 
 
-class APIMetaData(MetaDataBase):
-    pass
-
-
-class UtilsMetaData(APIMetaData):
-    pass
-
-
-class IOMetaData(MetaDataBase):
-    pass
-
-
 def get_category(v: Any):
     """Category discriminator function."""
     return v.get("category")
-
-
-MetaData = Annotated[
-    Union[
-        Annotated[ModelMetaData, Tag(Category.MODEL)],
-        Annotated[FunctionMetaData, Tag(Category.FUNCTION)],
-        Annotated[UtilsMetaData, Tag(Category.UTILS)],
-        Annotated[APIMetaData, Tag(Category.API)],
-        Annotated[IOMetaData, Tag(Category.IO)],
-    ],
-    Discriminator(get_category),
-]
 
 
 class StorageConfig(BaseModel):

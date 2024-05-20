@@ -95,7 +95,7 @@ class ToolkitBase:
     def on_call(self, f: OnCallType[...]):
         self.call_ = f
 
-    def call(
+    async def call(
         self,
         inputs: dict[str, Any],
         params: dict[str, Any],
@@ -105,7 +105,7 @@ class ToolkitBase:
         validated_inputs = self.inputs_model(**inputs)
         validated_params = self.params_model(**params)
 
-        return self.call_(validated_inputs, validated_params)
+        return await self.call_(validated_inputs, validated_params)
 
     def dump_metadata(self) -> str:
         metadata = self.get_metadata()
