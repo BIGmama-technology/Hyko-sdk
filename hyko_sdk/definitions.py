@@ -91,7 +91,7 @@ class ToolkitNode:
         )
 
     def on_call(self, f: OnCallType[...]):
-        self.call_ = f
+        self._call = f
 
     async def call(
         self,
@@ -103,7 +103,7 @@ class ToolkitNode:
         validated_inputs = self.inputs_model(**inputs)
         validated_params = self.params_model(**params)
 
-        return await self.call_(validated_inputs, validated_params)
+        return await self._call(validated_inputs, validated_params)
 
     def dump_metadata(self) -> str:
         metadata = self.get_metadata()
@@ -141,16 +141,17 @@ class ToolkitModel(ToolkitNode):
             name=name, task=task, description=description, cost=cost, category=category
         )
         self.started: bool = False
+        self._startup = None
 
     def on_startup(self, f: OnStartupFuncType[...]):
-        self.startup_ = f
+        self._startup = f
 
     async def startup(self, params: dict[str, Any]):
-        if self.started:
+        if self.started or not self._startup:
             return
 
         validated_params = self.params_model(**params)
-        await self.startup_(validated_params)
+        await self._startup(validated_params)
         self.started = True
 
     async def call(
@@ -164,4 +165,4 @@ class ToolkitModel(ToolkitNode):
         validated_params = self.params_model(**params)
         await self.startup(params)
 
-        return await self.call_(validated_inputs, validated_params)
+        return await self._call(validated_inputs, validated_params)
