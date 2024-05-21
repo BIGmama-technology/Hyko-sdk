@@ -10,9 +10,12 @@ import pytest
 from PIL.Image import Image as PILImage
 from pydantic import BaseModel, Field
 
-from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
+from hyko_sdk.definitions import (
+    ToolkitModel,
+    ToolkitNode,
+)
 from hyko_sdk.io import Audio, Image, Video
-from hyko_sdk.models import CoreModel, StorageConfig
+from hyko_sdk.models import Category, CoreModel, StorageConfig
 from hyko_sdk.utils import field
 
 
@@ -103,21 +106,12 @@ def startup():
 
 @pytest.fixture
 def toolkit_base():
-    return ToolkitBase(
+    return ToolkitNode(
         name="Test Toolkit",
         task="Testing",
         description="A test toolkit base",
+        category=Category.FUNCTION,
         cost=1,
-    )
-
-
-@pytest.fixture
-def toolkit_function():
-    return ToolkitFunction(
-        name="test_function",
-        task="task",
-        description="A test function",
-        cost=2,
     )
 
 
@@ -128,16 +122,6 @@ def toolkit_model():
         task="task",
         description="Description",
         cost=0,
-    )
-
-
-@pytest.fixture
-def toolkit_api():
-    return ToolkitAPI(
-        name="test",
-        task="task",
-        description="Description",
-        cost=2,
     )
 
 

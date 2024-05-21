@@ -28,7 +28,7 @@ OnCallType = Callable[..., Coroutine[Any, Any, OutputsType]]
 T = TypeVar("T", bound=Type[BaseModel])
 
 
-class ToolkitBase:
+class ToolkitNode:
     def __init__(
         self, name: str, task: str, description: str, cost: int, category: Category
     ):
@@ -64,6 +64,7 @@ class ToolkitBase:
 
     def set_input(self, model: T) -> T:
         self.inputs = self.fields_to_metadata(model)
+        self.inputs_model = model
         return model
 
     def set_output(self, model: T) -> T:
@@ -74,6 +75,7 @@ class ToolkitBase:
 
     def set_param(self, model: T) -> T:
         self.params = self.fields_to_metadata(model)
+        self.params_model = model
         return model
 
     def get_metadata(self):
@@ -108,7 +110,7 @@ class ToolkitBase:
         return metadata.model_dump_json(exclude_none=True)
 
 
-class ToolkitIO(ToolkitBase):
+class ToolkitIO(ToolkitNode):
     def __init__(
         self,
         name: str,
@@ -117,7 +119,7 @@ class ToolkitIO(ToolkitBase):
         cost: int,
         category: Category = Category.IO,
     ):
-        ToolkitBase.__init__(self, name, task, description, cost, category)
+        ToolkitNode.__init__(self, name, task, description, cost, category)
 
     def set_output(self, model: T) -> T:
         self.outputs = self.fields_to_metadata(
@@ -126,21 +128,7 @@ class ToolkitIO(ToolkitBase):
         return model
 
 
-class Toolkit(ToolkitBase):
-    def __init__(
-        self,
-        name: str,
-        task: str,
-        description: str,
-        cost: int,
-        category: Category,
-    ):
-        super().__init__(
-            name=name, task=task, description=description, cost=cost, category=category
-        )
-
-
-class ToolkitModel(ToolkitBase):
+class ToolkitModel(ToolkitNode):
     def __init__(
         self,
         name: str,
