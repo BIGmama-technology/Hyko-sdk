@@ -30,13 +30,9 @@ T = TypeVar("T", bound=Type[BaseModel])
 
 class ToolkitBase:
     def __init__(
-        self,
-        name: str,
-        task: str,
-        description: str,
-        cost: int,
+        self, name: str, task: str, description: str, cost: int, category: Category
     ):
-        self.category: Category = Category.FUNCTION
+        self.category = category
         self.description = description
         self.name = name
         self.task = task
@@ -119,10 +115,9 @@ class ToolkitIO(ToolkitBase):
         task: str,
         description: str,
         cost: int,
+        category: Category = Category.IO,
     ):
-        ToolkitBase.__init__(self, name, task, description, cost)
-
-        self.category = Category.IO
+        ToolkitBase.__init__(self, name, task, description, cost, category)
 
     def set_output(self, model: T) -> T:
         self.outputs = self.fields_to_metadata(
@@ -131,51 +126,32 @@ class ToolkitIO(ToolkitBase):
         return model
 
 
-class ToolkitAPI(ToolkitBase):
-    def __init__(self, name: str, task: str, description: str, cost: int):
+class Toolkit(ToolkitBase):
+    def __init__(
+        self,
+        name: str,
+        task: str,
+        description: str,
+        cost: int,
+        category: Category,
+    ):
         super().__init__(
-            name=name,
-            task=task,
-            description=description,
-            cost=cost,
+            name=name, task=task, description=description, cost=cost, category=category
         )
-        self.category = Category.API
 
 
-class ToolkitUtils(ToolkitBase):
+class ToolkitModel(ToolkitBase):
     def __init__(
         self,
         name: str,
         task: str,
         description: str,
         cost: int,
+        category: Category = Category.MODEL,
     ):
-        super().__init__(name=name, task=task, description=description, cost=cost)
-        self.category = Category.UTILS
-
-
-class ToolkitFunction(ToolkitBase):
-    def __init__(
-        self,
-        name: str,
-        task: str,
-        description: str,
-        cost: int,
-    ):
-        super().__init__(name=name, task=task, description=description, cost=cost)
-        self.category = Category.FUNCTION
-
-
-class ToolkitModel(ToolkitFunction):
-    def __init__(
-        self,
-        name: str,
-        task: str,
-        description: str,
-        cost: int,
-    ):
-        super().__init__(name=name, task=task, description=description, cost=cost)
-        self.category = Category.MODEL
+        super().__init__(
+            name=name, task=task, description=description, cost=cost, category=category
+        )
         self.started: bool = False
 
     def on_startup(self, f: OnStartupFuncType[...]):
@@ -186,4 +162,18 @@ class ToolkitModel(ToolkitFunction):
             return
 
         validated_params = self.params_model(**params)
-        return await self.startup_(validated_params)
+        await self.startup_(validated_params)
+        self.started = True
+
+    async def call(
+        self,
+        inputs: dict[str, Any],
+        params: dict[str, Any],
+        storage_config: StorageConfig,
+    ):
+        StorageConfig.configure(**storage_config.model_dump())
+        validated_inputs = self.inputs_model(**inputs)
+        validated_params = self.params_model(**params)
+        await self.startup(params)
+
+        return await self.call_(validated_inputs, validated_params)
