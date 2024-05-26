@@ -1,5 +1,5 @@
 import json
-from typing import Any, Callable, Coroutine, Type, TypeVar
+from typing import Any, Callable, Coroutine, Optional, Type, TypeVar
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -16,6 +16,7 @@ from .models import (
     Category,
     FieldMetadata,
     FunctionMetaData,
+    Icon,
     IOMetaData,
     MetaDataBase,
     ModelMetaData,
@@ -42,12 +43,14 @@ class ToolkitBase:
         task: str,
         description: str,
         cost: int,
+        icon: Optional[Icon],
     ):
         self.category: Category = Category.FUNCTION
         self.desc = description
         self.name = name
         self.task = task
         self.cost = cost
+        self.icon = icon
         self.inputs = {}
         self.outputs = {}
         self.params = {}
@@ -95,6 +98,7 @@ class ToolkitBase:
             params=self.params,
             outputs=self.outputs,
             cost=self.cost,
+            icon=self.icon,
         )
 
     def dump_metadata(self) -> str:
@@ -109,8 +113,9 @@ class ToolkitIO(ToolkitBase):
         task: str,
         description: str,
         cost: int,
+        icon: Optional[Icon],
     ):
-        ToolkitBase.__init__(self, name, task, description, cost)
+        ToolkitBase.__init__(self, name, task, description, cost, icon)
 
         self.category = Category.IO
 
@@ -137,8 +142,9 @@ class ToolkitFunction(ToolkitBase, FastAPI):
         cost: int,
         absolute_dockerfile_path: str,
         docker_context: str,
+        icon: Optional[Icon],
     ):
-        ToolkitBase.__init__(self, name, task, description, cost)
+        ToolkitBase.__init__(self, name, task, description, cost, icon)
         self.absolute_dockerfile_path = absolute_dockerfile_path
         self.docker_context = docker_context
         FastAPI.__init__(self)
@@ -209,6 +215,7 @@ class ToolkitModel(ToolkitFunction):
         cost: int,
         absolute_dockerfile_path: str,
         docker_context: str,
+        icon: Optional[Icon],
     ):
         super().__init__(
             name=name,
@@ -217,6 +224,7 @@ class ToolkitModel(ToolkitFunction):
             cost=cost,
             absolute_dockerfile_path=absolute_dockerfile_path,
             docker_context=docker_context,
+            icon=icon,
         )
         self.category = Category.MODEL
         self.started: bool = False
@@ -274,12 +282,10 @@ class ToolkitAPI(ToolkitBase):
         task: str,
         description: str,
         cost: int,
+        icon: Optional[Icon],
     ):
         super().__init__(
-            name=name,
-            task=task,
-            description=description,
-            cost=cost,
+            name=name, task=task, description=description, cost=cost, icon=icon
         )
         self.category = Category.API
 
@@ -319,8 +325,11 @@ class ToolkitUtils(ToolkitAPI):
         task: str,
         description: str,
         cost: int,
+        icon: Optional[Icon],
     ):
-        super().__init__(name=name, task=task, description=description, cost=cost)
+        super().__init__(
+            name=name, task=task, description=description, cost=cost, icon=icon
+        )
         self.category = Category.UTILS
 
     def get_metadata(self) -> UtilsMetaData:

@@ -77,7 +77,7 @@ class Select(Component):
 
 
 class Search(Component):
-    placeholder: str = ""
+    placeholder: str
     results: list[str] = []
 
 
