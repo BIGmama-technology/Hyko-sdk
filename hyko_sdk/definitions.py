@@ -36,8 +36,8 @@ class ToolkitNode:
         task: str,
         description: str,
         cost: int,
-        icon: Optional[Icon],
         category: Category,
+        icon: Optional[Icon] = None,
     ):
         self.category = category
         self.description = description
