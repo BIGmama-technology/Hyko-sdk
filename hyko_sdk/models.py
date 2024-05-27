@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Optional
+from typing import Annotated, Any, Literal, Optional
 
 from pydantic import (
     BaseModel,
@@ -7,6 +7,8 @@ from pydantic import (
     computed_field,
     field_validator,
 )
+
+from hyko_sdk.utils import to_image
 
 from .components.components import (
     Components,
@@ -50,11 +52,65 @@ class FieldMetadata(BaseModel):
     callback_id: Optional[str] = None
 
 
+Icon = Literal[
+    "openai",
+    "io",
+    "functions",
+    "models",
+    "apis",
+    "utils",
+    "hf",
+    "openrouter",
+    "docs",
+    "sheets",
+    "discord",
+    "airtable",
+    "youtube",
+    "google",
+    "gmail",
+    "github",
+    "drive",
+    "notion",
+    "outlook",
+    "x",
+    "reddit",
+    "cohere",
+    "anthropic",
+    "arxiv",
+    "duckduckgo",
+    "gemini",
+    "microsoft",
+    "mistral",
+    "stabilityai",
+    "groq",
+    "replicate",
+    "wikipedia",
+    "tune",
+    "text",
+    "number",
+    "image",
+    "audio",
+    "video",
+    "csv",
+    "list",
+    "pdf",
+    "graph",
+    "flip",
+    "dimensions",
+    "crop",
+    "opacity",
+    "padding",
+    "resize",
+    "rotate",
+    "stack",
+]
+
+
 class MetaDataBase(BaseModel):
     @computed_field
     @property
     def image(self) -> str:
-        return self.category.value + "/" + self.task + "/" + self.name
+        return to_image(self.category.value + "/" + self.task + "/" + self.name)
 
     name: str
     task: str
@@ -62,7 +118,7 @@ class MetaDataBase(BaseModel):
     category: Category
     cost: int = 0
 
-    icon: Optional[str] = None
+    icon: Optional[Annotated[str, Icon]] = None
 
     params: dict[str, FieldMetadata] = {}
     inputs: dict[str, FieldMetadata] = {}

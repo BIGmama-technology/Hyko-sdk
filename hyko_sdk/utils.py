@@ -1,3 +1,4 @@
+import re
 from typing import Any, Optional
 
 from pydantic import Field
@@ -39,3 +40,20 @@ mimetype_to_extension = {
     "video/x-ms-wmv": "wmv",
 }
 extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}
+
+
+def to_image(image: str):
+    """
+    Remove any spaces, special characters, or numbers from a string and convert it to lowercase.
+
+    Parameters:
+    input_string (str): The string from which to remove special characters, spaces, and numbers.
+
+    Returns:
+    str: A new string containing only lowercase letters from the original string.
+    """
+    cleaned_image = image.replace(" ", "_")
+    cleaned_image = re.sub(r"[^a-zA-Z/_]", "", image)
+    cleaned_image = cleaned_image.lower()
+
+    return cleaned_image

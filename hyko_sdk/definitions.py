@@ -1,4 +1,5 @@
-from typing import Any, Callable, Coroutine, Type, TypeVar
+import json
+from typing import Any, Callable, Coroutine, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 from pydantic.json_schema import GenerateJsonSchema
@@ -12,6 +13,7 @@ from .models import (
     Category,
     CoreModel,
     FieldMetadata,
+    Icon,
     MetaDataBase,
     StorageConfig,
 )
@@ -30,13 +32,20 @@ T = TypeVar("T", bound=Type[BaseModel])
 
 class ToolkitNode:
     def __init__(
-        self, name: str, task: str, description: str, cost: int, category: Category
+        self,
+        name: str,
+        task: str,
+        description: str,
+        cost: int,
+        icon: Optional[Icon],
+        category: Category,
     ):
         self.category = category
         self.description = description
         self.name = name
         self.task = task
         self.cost = cost
+        self.icon = icon
         self.inputs = {}
         self.outputs = {}
         self.params = {}
@@ -88,6 +97,7 @@ class ToolkitNode:
             params=self.params,
             outputs=self.outputs,
             cost=self.cost,
+            icon=self.icon,
         )
 
     def on_call(self, f: OnCallType[...]):
@@ -120,7 +130,12 @@ class ToolkitModel(ToolkitNode):
         category: Category = Category.MODEL,
     ):
         super().__init__(
-            name=name, task=task, description=description, cost=cost, category=category
+            name=name,
+            task=task,
+            description=description,
+            cost=cost,
+            category=category,
+            icon="models",
         )
         self.started: bool = False
         self._startup = None
