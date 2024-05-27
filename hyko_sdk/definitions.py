@@ -110,24 +110,6 @@ class ToolkitNode:
         return metadata.model_dump_json(exclude_none=True)
 
 
-class ToolkitIO(ToolkitNode):
-    def __init__(
-        self,
-        name: str,
-        task: str,
-        description: str,
-        cost: int,
-        category: Category = Category.IO,
-    ):
-        ToolkitNode.__init__(self, name, task, description, cost, category)
-
-    def set_output(self, model: T) -> T:
-        self.outputs = self.fields_to_metadata(
-            model, schema_generator=JsonSchemaGeneratorWithComponents
-        )
-        return model
-
-
 class ToolkitModel(ToolkitNode):
     def __init__(
         self,
