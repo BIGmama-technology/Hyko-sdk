@@ -1,15 +1,11 @@
-from typing import Any, Coroutine, Type
+from typing import Type
 
-from fastapi import status
-from fastapi.testclient import TestClient
+import pytest
 from pydantic import BaseModel
 
 from hyko_sdk.definitions import (
     OnCallType,
-    ToolkitAPI,
-    ToolkitBase,
-    ToolkitFunction,
-    ToolkitModel,
+    ToolkitNode,
 )
 from hyko_sdk.models import (
     FieldMetadata,
@@ -21,7 +17,7 @@ from hyko_sdk.models import (
 # ToolkitBase Tests
 def test_toolkit_base_set_input(
     sample_io_data: Type[BaseModel],
-    toolkit_base: ToolkitBase,
+    toolkit_base: ToolkitNode,
 ):
     input = toolkit_base.set_input(sample_io_data)
     assert toolkit_base.inputs
@@ -33,7 +29,7 @@ def test_toolkit_base_set_input(
 
 def test_toolkit_base_set_output(
     sample_io_data: Type[BaseModel],
-    toolkit_base: ToolkitBase,
+    toolkit_base: ToolkitNode,
 ):
     output = toolkit_base.set_output(sample_io_data)
     assert toolkit_base.outputs
@@ -45,7 +41,7 @@ def test_toolkit_base_set_output(
 
 def test_toolkit_base_set_param(
     sample_io_data: Type[BaseModel],
-    toolkit_base: ToolkitBase,
+    toolkit_base: ToolkitNode,
 ):
     param = toolkit_base.set_param(sample_io_data)
     assert toolkit_base.params
@@ -55,16 +51,16 @@ def test_toolkit_base_set_param(
     assert param == sample_io_data
 
 
-def test_get_base_metadata(
+def test_get_metadata(
     sample_io_data: Type[BaseModel],
     sample_param_data: Type[BaseModel],
-    toolkit_base: ToolkitBase,
+    toolkit_base: ToolkitNode,
 ):
     toolkit_base.set_input(sample_io_data)
     toolkit_base.set_output(sample_io_data)
     toolkit_base.set_param(sample_param_data)
 
-    meta_data = toolkit_base.get_base_metadata()
+    meta_data = toolkit_base.get_metadata()
 
     assert isinstance(meta_data, MetaDataBase)
 
@@ -72,7 +68,7 @@ def test_get_base_metadata(
 def test_dump_metadata(
     sample_io_data: Type[BaseModel],
     sample_param_data: Type[BaseModel],
-    toolkit_base: ToolkitBase,
+    toolkit_base: ToolkitNode,
 ):
     toolkit_base.set_input(sample_io_data)
     toolkit_base.set_output(sample_io_data)
@@ -83,106 +79,21 @@ def test_dump_metadata(
     assert isinstance(dumped_meta_data, str)
 
 
-#  ToolkitFunction Tests.
-def test_on_execute(
-    toolkit_function: ToolkitFunction,
-    execute: Type[Coroutine[Any, Any, BaseModel]],
-    base_model_child: Type[BaseModel],
-):
-    toolkit_function.on_execute(execute)
-    client = TestClient(toolkit_function)
-
-    response = client.post(
-        "/execute",
-        json={
-            "inputs": base_model_child(key="value").model_dump(),
-            "params": base_model_child(key="value").model_dump(),
-        },
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"result": "success"}
-
-
-def test_on_execute_with_bad_execute_function(
-    toolkit_function: ToolkitFunction,
-    bad_execute: Type[Coroutine[Any, Any, BaseModel]],
-    base_model_child: Type[BaseModel],
-):
-    toolkit_function.on_execute(bad_execute)
-    client = TestClient(toolkit_function)
-
-    response = client.post(
-        "/execute",
-        json={
-            "inputs": base_model_child(key="value").model_dump(),
-            "params": base_model_child(key="value").model_dump(),
-        },
-    )
-
-    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-def test_function_dump_metadata(
-    sample_io_data: Type[BaseModel],
-    toolkit_function: ToolkitFunction,
-    sample_param_data: Type[BaseModel],
-):
-    toolkit_function.set_input(sample_io_data)
-    toolkit_function.set_output(sample_io_data)
-    toolkit_function.set_param(sample_param_data)
-
-    toolkit_function.absolute_dockerfile_path = "Dockerfile"
-    toolkit_function.docker_context = "."
-
-    dumped_meta_data = toolkit_function.dump_metadata()
-
-    assert isinstance(dumped_meta_data, str)
-
-
-# ToolkitModel Tests.
-def test_model_set_startup_params(
-    sample_io_data: Type[BaseModel],
-    toolkit_model: ToolkitModel,
-):
-    startup_params = toolkit_model.set_startup_params(sample_io_data)
-    assert toolkit_model.startup_params
-    assert all(
-        isinstance(field, FieldMetadata)
-        for field in toolkit_model.startup_params.values()
-    )
-    assert startup_params == sample_io_data
-
-
-def test_model_on_startup(
-    toolkit_model: ToolkitModel,
-    startup: Type[Coroutine[Any, Any, None]],
-    base_model_child: Type[BaseModel],
-):
-    toolkit_model.on_startup(startup)
-    client = TestClient(toolkit_model)
-
-    response = client.post(
-        "/startup",
-        json={
-            "startup_params": base_model_child(key="value").model_dump(),
-        },
-    )
-
-    assert response.status_code != status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-def test_api_execute(
-    toolkit_api: ToolkitAPI,
+@pytest.mark.asyncio
+async def toolkit_test(
+    toolkit_base: ToolkitNode,
     base_model_child: Type[BaseModel],
     sample_call_fn_with_params: OnCallType[...],
 ):
-    toolkit_api.set_input(base_model_child)
-    toolkit_api.set_param(base_model_child)
+    # Set the input and parameter models for the toolkit node
+    toolkit_base.set_input(base_model_child)
+    toolkit_base.set_param(base_model_child)
 
-    toolkit_api.on_call(sample_call_fn_with_params)
+    # Set the sample call function with parameters
+    toolkit_base.on_call(sample_call_fn_with_params)
 
-    result = toolkit_api.execute(
+    # Call the execute function with test inputs, params, and storage config
+    result = await toolkit_base.call(
         inputs=base_model_child(key="key").model_dump(),
         params=base_model_child(key="output").model_dump(),
         storage_config=StorageConfig(
@@ -192,4 +103,5 @@ def test_api_execute(
         ),
     )
 
+    # Assert the expected result
     assert result == "test call"
