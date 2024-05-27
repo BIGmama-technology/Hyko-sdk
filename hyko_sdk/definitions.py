@@ -127,6 +127,7 @@ class ToolkitModel(ToolkitNode):
         description: str,
         cost: int,
         category: Category = Category.MODEL,
+        icon: Optional[Icon] = "models",
     ):
         super().__init__(
             name=name,
@@ -134,7 +135,7 @@ class ToolkitModel(ToolkitNode):
             description=description,
             cost=cost,
             category=category,
-            icon="models",
+            icon=icon,
         )
         self.started: bool = False
         self._startup = None
