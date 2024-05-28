@@ -51,6 +51,10 @@ class ToolkitNode:
         self.inputs_model = CoreModel
         self.params_model = CoreModel
 
+        # For models
+        self.started: bool = False
+        self._startup = None
+
     def fields_to_metadata(
         self,
         model: Type[BaseModel],
@@ -102,52 +106,17 @@ class ToolkitNode:
     def on_call(self, f: OnCallType[...]):
         self._call = f
 
-    async def call(
-        self,
-        inputs: dict[str, Any],
-        params: dict[str, Any],
-        storage_config: StorageConfig,
-    ):
-        StorageConfig.configure(**storage_config.model_dump())
-        validated_inputs = self.inputs_model(**inputs)
-        validated_params = self.params_model(**params)
-
-        return await self._call(validated_inputs, validated_params)
-
     def dump_metadata(self) -> str:
         metadata = self.get_metadata()
         return metadata.model_dump_json(exclude_none=True)
 
-
-class ToolkitModel(ToolkitNode):
-    def __init__(
-        self,
-        name: str,
-        task: str,
-        description: str,
-        cost: int,
-        category: Category = Category.MODEL,
-        icon: Optional[Icon] = "models",
-    ):
-        super().__init__(
-            name=name,
-            task=task,
-            description=description,
-            cost=cost,
-            category=category,
-            icon=icon,
-        )
-        self.started: bool = False
-        self._startup = None
-
     def on_startup(self, f: OnStartupFuncType[...]):
         self._startup = f
 
-    async def startup(self, params: dict[str, Any]):
+    async def startup(self, validated_params: Any):
         if self.started or not self._startup:
             return
 
-        validated_params = self.params_model(**params)
         await self._startup(validated_params)
         self.started = True
 
@@ -160,6 +129,7 @@ class ToolkitModel(ToolkitNode):
         StorageConfig.configure(**storage_config.model_dump())
         validated_inputs = self.inputs_model(**inputs)
         validated_params = self.params_model(**params)
-        await self.startup(params)
+
+        await self.startup(validated_params)
 
         return await self._call(validated_inputs, validated_params)
