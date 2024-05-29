@@ -15,6 +15,7 @@ from .models import (
     Icon,
     MetaDataBase,
     StorageConfig,
+    SupportedProviders,
 )
 
 InputsType = TypeVar("InputsType", bound="BaseModel")
@@ -38,6 +39,7 @@ class ToolkitNode:
         cost: int,
         category: Category,
         icon: Optional[Icon] = None,
+        auth: Optional[SupportedProviders] = None,
     ):
         self.category = category
         self.description = description
@@ -50,6 +52,7 @@ class ToolkitNode:
         self.params = {}
         self.inputs_model = CoreModel
         self.params_model = CoreModel
+        self.auth = auth
 
         # For models
         self.started: bool = False
