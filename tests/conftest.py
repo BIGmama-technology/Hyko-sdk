@@ -11,7 +11,6 @@ from PIL.Image import Image as PILImage
 from pydantic import BaseModel, Field
 
 from hyko_sdk.definitions import (
-    ToolkitModel,
     ToolkitNode,
 )
 from hyko_sdk.io import Audio, Image, Video
@@ -117,11 +116,12 @@ def toolkit_base():
 
 @pytest.fixture
 def toolkit_model():
-    return ToolkitModel(
+    return ToolkitNode(
         name="test_function",
         task="task",
         description="Description",
         cost=0,
+        category=Category.MODEL,
     )
 
 
