@@ -104,6 +104,7 @@ class ToolkitNode:
             outputs=self.outputs,
             cost=self.cost,
             icon=self.icon,
+            auth=self.auth,
         )
 
     def on_call(self, f: OnCallType[...]):

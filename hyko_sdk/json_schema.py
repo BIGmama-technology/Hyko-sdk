@@ -10,6 +10,7 @@ from .components.components import (
     ListComponent,
     PortType,
     Select,
+    SelectChoice,
     SubField,
     set_default_component,
 )
@@ -92,7 +93,12 @@ class JsonSchemaGeneratorWithComponents(JsonSchemaGenerator):
             if property.all_of and json_schema.defs:
                 _def = json_schema.defs[property.all_of[0].ref]
                 if isinstance(_def, EnumDef):
-                    property.component = Select(choices=_def.enum)
+                    property.component = Select(
+                        choices=[
+                            SelectChoice(label=choice, value=choice)
+                            for choice in _def.enum
+                        ]
+                    )
                 else:
                     fields = [
                         SubField(name=name, **prop.model_dump())

@@ -72,8 +72,13 @@ class Toggle(Component):
     pass
 
 
+class SelectChoice(BaseModel):
+    label: str | int | float
+    value: str | int | float
+
+
 class Select(Component):
-    choices: list[str | int | float]
+    choices: list[SelectChoice]
 
 
 class Search(Component):
