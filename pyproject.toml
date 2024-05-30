@@ -13,7 +13,7 @@ uvicorn = {extras = ["standard"], version = "^0.25.0"}
 pillow = "^10.2.0"
 httpx = "0.24.1"
 aiofiles = "^23.2.1"
-numpy = "^1.26.4"
+numpy = "*"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
