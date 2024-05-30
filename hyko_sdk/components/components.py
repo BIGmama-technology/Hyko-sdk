@@ -181,5 +181,21 @@ def set_default_component(type: Optional[PortType]) -> Components | None:
             return TextField(placeholder="Text field.")
         case PortType.IMAGE:
             return StorageSelect(supported_ext=[Ext.PNG, Ext.JPG, Ext.JPEG])
+        case PortType.VIDEO:
+            return StorageSelect(
+                supported_ext=[
+                    Ext.MPEG,
+                    Ext.WEBM,
+                    Ext.MP4,
+                    Ext.AVI,
+                    Ext.MKV,
+                    Ext.MOV,
+                    Ext.WMV,
+                ]
+            )
+        case PortType.AUDIO:
+            return StorageSelect(supported_ext=[Ext.WAV, Ext.MP3])
+        case PortType.PDF:
+            return StorageSelect(supported_ext=[Ext.PDF])
         case _:
             return None
