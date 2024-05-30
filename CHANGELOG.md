@@ -1,5 +1,61 @@
 # Changelog
 
+## [4.5.0](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.4.0...v4.5.0) (2024-05-30)
+
+
+### Features
+
+* add callback id and turn inputs, params and output to dicts ([26fa8b4](https://github.com/BIGmama-technology/Hyko-sdk/commit/26fa8b439a8d0cd7227d0b9bd08ffb0b243a965e))
+* add cost to definitions and metadata ([0b0d72d](https://github.com/BIGmama-technology/Hyko-sdk/commit/0b0d72d41c7a8495be5f518f738766b9d6743239))
+* add csv to porttypes ([bf12917](https://github.com/BIGmama-technology/Hyko-sdk/commit/bf12917e44d419f4e52af26b30ed515c9fb740c3))
+* add freezed field to components ([5197acf](https://github.com/BIGmama-technology/Hyko-sdk/commit/5197acf3a0e6fd454968975b563cdea6301d30c3))
+* add hyko custom field function eq to pydantic Field ([b32d5d9](https://github.com/BIGmama-technology/Hyko-sdk/commit/b32d5d9cf07ffec0a718f26b6e9bbbcc99625e8d))
+* add io nodes definition ([80b3270](https://github.com/BIGmama-technology/Hyko-sdk/commit/80b327094486fff1be22c624597c006b5f3ca7dc))
+* add leq and geq to number field ([5830b9d](https://github.com/BIGmama-technology/Hyko-sdk/commit/5830b9d467ce16287ff9c320e1d3a80d435b7eca))
+* add preview video, pdf .. ([f8cda8b](https://github.com/BIGmama-technology/Hyko-sdk/commit/f8cda8bd0e534b0a7ec539ab4fdb8bcac01523ad))
+* add storage select component and move things around ([e10899f](https://github.com/BIGmama-technology/Hyko-sdk/commit/e10899f6e4ec5314c812c26288ba3fc3b730b9fb))
+* add support for list component ([4587165](https://github.com/BIGmama-technology/Hyko-sdk/commit/4587165dd809ee0105cae0df4dd4daa95caf104b))
+* add toolkitio init and getmetadata functions, and IOMetaData model ([653dbb4](https://github.com/BIGmama-technology/Hyko-sdk/commit/653dbb4b9490624e3316f932a389748a6c41b549))
+* added icons to node metadata ([71fad89](https://github.com/BIGmama-technology/Hyko-sdk/commit/71fad8903a47362f7150af6b70b3d230992d0ff4))
+* added new search component + add startup params method ([fd9be30](https://github.com/BIGmama-technology/Hyko-sdk/commit/fd9be303ae280f9b159e892a177647af14040f38))
+* added value field in FieldMetadata ([7e74a3c](https://github.com/BIGmama-technology/Hyko-sdk/commit/7e74a3c58b37cc2d9aab4946539dfc8e8df2e835))
+* remoted ToolkitIO definition ([7bb45ef](https://github.com/BIGmama-technology/Hyko-sdk/commit/7bb45ef439ad16e525296f07556f1c72b8d2b19c))
+* seperate setting components in json schema generator into its own subclass ([5fd8792](https://github.com/BIGmama-technology/Hyko-sdk/commit/5fd8792e65fb77b356d9777fa853aa6649e19e36))
+* set default component for audio and video ([6f8518e](https://github.com/BIGmama-technology/Hyko-sdk/commit/6f8518ecf7659d5808b5d636ab4f63bc74a38463))
+* support enums in new metadata, using custom json schema generator ([75684eb](https://github.com/BIGmama-technology/Hyko-sdk/commit/75684eb9ddee56bbfe6c6a6bd09b505a0518564b))
+* support list of basemodel ([51da215](https://github.com/BIGmama-technology/Hyko-sdk/commit/51da21532b715978b269deee8c97fc9bbebf79ea))
+* support lists, Any, list of list and components in metadata ([189d6db](https://github.com/BIGmama-technology/Hyko-sdk/commit/189d6dba456a25e0534fb1b76316eb5fcc8f29be))
+* support nested models in our custom json schema generation, and set default components ([d381ba9](https://github.com/BIGmama-technology/Hyko-sdk/commit/d381ba9cfea0fa06fad67bdc06c2603c226b7d67))
+* use custom json schema and field metadata models ([75c65b1](https://github.com/BIGmama-technology/Hyko-sdk/commit/75c65b1b609ef1e8713fc5f1f7290f259d31546f))
+
+
+### Bug Fixes
+
+* add complext component in case ref come inside allof ([ca96bf2](https://github.com/BIGmama-technology/Hyko-sdk/commit/ca96bf225115cddc80f4e890ac2bbf70ba0f6bda))
+* add Image preview component ([2b0b647](https://github.com/BIGmama-technology/Hyko-sdk/commit/2b0b647c4f0d322028ff25e347c173516c54ad88))
+* added back validation to initialize instance of io types ([24ebd12](https://github.com/BIGmama-technology/Hyko-sdk/commit/24ebd123bdbd934fbadf65f1a4e3691b11c4344c))
+* added check to see if component is set before anything ([6f2da06](https://github.com/BIGmama-technology/Hyko-sdk/commit/6f2da0617eb1feb7ee8108376e9189942c0cc384))
+* added icon param to ToolkitModel ([a2c5efb](https://github.com/BIGmama-technology/Hyko-sdk/commit/a2c5efb10062e9a09cf5c6ffd0a8e201d487d0f3))
+* allow None components in FieldMetadata for output ([d9b80a3](https://github.com/BIGmama-technology/Hyko-sdk/commit/d9b80a35867b3dee70d491e9a318831b4a2a550c))
+* complex fields should come with porttype object ([a09f3a2](https://github.com/BIGmama-technology/Hyko-sdk/commit/a09f3a22a7a7a2b7ef56400c5130646c8efaf586))
+* coverage badge EOF ([83ac646](https://github.com/BIGmama-technology/Hyko-sdk/commit/83ac646ebaadeb0137ebede3857ad4fc27993a63))
+* desc -&gt; description ([0b504b8](https://github.com/BIGmama-technology/Hyko-sdk/commit/0b504b8e1a168260d3353102b26e0c5fccb8631d))
+* fixed formatting ([eeba753](https://github.com/BIGmama-technology/Hyko-sdk/commit/eeba7538dc01687fa86e0acea0f9a90a7f016765))
+* fixed list type in json schema ([546d1ac](https://github.com/BIGmama-technology/Hyko-sdk/commit/546d1acb8f1b999c8ae669496a198990f3f12368))
+* fixed pre-push hook ([98221c4](https://github.com/BIGmama-technology/Hyko-sdk/commit/98221c4bec40766b60cd7a76fb35c0962000ab82))
+* give self.models and params intial value of CoreModel ([a95c825](https://github.com/BIGmama-technology/Hyko-sdk/commit/a95c825bd2845edb096898f91fc7fd8867f8ee99))
+* ingore typing error from PIL ([ba17536](https://github.com/BIGmama-technology/Hyko-sdk/commit/ba1753697e72ccd98423fd8949c8a1dfee802819))
+* made icon optional ([065683e](https://github.com/BIGmama-technology/Hyko-sdk/commit/065683e142d61f21695a9ceb14a1d806365591b2))
+* return the right component for list[list[...]] and list[any] ([0ea4d17](https://github.com/BIGmama-technology/Hyko-sdk/commit/0ea4d17a64df4e5ab88f3804f2ddf3ac9c208c19))
+* setting default component for a list[list[...]] ([00e3ee1](https://github.com/BIGmama-technology/Hyko-sdk/commit/00e3ee1726513e42d1c5320d1e8147774fbdb555))
+* support list[any] in json schema validation ([08e5211](https://github.com/BIGmama-technology/Hyko-sdk/commit/08e5211a824d7932e72168501ae0786f29a54167))
+* update imports in tests ([4dfc711](https://github.com/BIGmama-technology/Hyko-sdk/commit/4dfc7119afb2668937dbd05773e02abf0d4d8287))
+
+
+### Performance Improvements
+
+* remove docker from deps ([c0be1b4](https://github.com/BIGmama-technology/Hyko-sdk/commit/c0be1b45f2693be2b3e95e2e01d9f9a39d463dd3))
+
 ## [4.4.0](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.3.0...v4.4.0) (2024-04-15)
 
 
