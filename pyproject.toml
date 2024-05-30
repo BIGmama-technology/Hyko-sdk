@@ -8,12 +8,12 @@ description = "Hyko python SDK."
 python = "^3.11.6"
 fastapi = "^0.100.1"
 soundfile = "^0.12.1"
-numpy = "1.25.2"
 pydantic = "^2.5.3"
 uvicorn = {extras = ["standard"], version = "^0.25.0"}
 pillow = "^10.2.0"
 httpx = "0.24.1"
 aiofiles = "^23.2.1"
+numpy = "*"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"

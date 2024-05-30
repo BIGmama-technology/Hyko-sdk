@@ -1,6 +1,6 @@
 import io
 from enum import Enum
-from typing import Any, Dict, Type
+from typing import Any, Dict
 from unittest import mock
 
 import numpy as np
@@ -10,10 +10,18 @@ import pytest
 from PIL.Image import Image as PILImage
 from pydantic import BaseModel, Field
 
-from hyko_sdk.definitions import ToolkitAPI, ToolkitBase, ToolkitFunction, ToolkitModel
+from hyko_sdk.definitions import (
+    ToolkitModel,
+    ToolkitNode,
+)
 from hyko_sdk.io import Audio, Image, Video
-from hyko_sdk.models import CoreModel, HykoJsonSchema
-from hyko_sdk.utils import to_friendly_types
+from hyko_sdk.models import Category, CoreModel, StorageConfig
+from hyko_sdk.utils import field
+
+
+@pytest.fixture(autouse=True)
+def configure_settings():
+    StorageConfig.configure("test", "test", "test")
 
 
 @pytest.fixture
@@ -43,7 +51,7 @@ def mock_get_png(sample_pil_image_data: PILImage):
     with mock.patch("httpx.AsyncClient.get") as mock_post:
         # Setup a mock response object
         file = io.BytesIO()
-        sample_pil_image_data.save(file, format="PNG")
+        sample_pil_image_data.save(file, format="PNG")  # type: ignore
         img_byte = file.getvalue()
 
         mock_response = mock.Mock()
@@ -64,7 +72,7 @@ def sample_call_fn_with_params():
 @pytest.fixture
 def base_model_child():
     class BaseModelChild(BaseModel):
-        key: str
+        key: str = Field(..., description="test")
 
     return BaseModelChild
 
@@ -98,17 +106,12 @@ def startup():
 
 @pytest.fixture
 def toolkit_base():
-    return ToolkitBase(name="Test Toolkit", task="Testing", desc="A test toolkit base")
-
-
-@pytest.fixture
-def toolkit_function():
-    return ToolkitFunction(
-        name="test_function",
-        task="task",
-        description="A test function",
-        docker_context="test_context",
-        absolute_dockerfile_path="test_dockerfile_path",
+    return ToolkitNode(
+        name="Test Toolkit",
+        task="Testing",
+        description="A test toolkit base",
+        category=Category.FUNCTION,
+        cost=1,
     )
 
 
@@ -118,30 +121,16 @@ def toolkit_model():
         name="test_function",
         task="task",
         description="Description",
-        docker_context="test_context",
-        absolute_dockerfile_path="test_dockerfile_path",
-    )
-
-
-@pytest.fixture
-def toolkit_api():
-    return ToolkitAPI(name="test", task="task", description="Description")
-
-
-@pytest.fixture
-def sample_iop_data_json_schema(sample_io_data: Type[BaseModel]):
-    return HykoJsonSchema(
-        **sample_io_data.model_json_schema(),
-        friendly_types=to_friendly_types(sample_io_data),
+        cost=0,
     )
 
 
 @pytest.fixture
 def sample_io_data():
     class IO(CoreModel):
-        sample_io_image: Image = Field(..., description="IO image")
-        sample_io_audio: Audio = Field(..., description="IO audio")
-        sample_io_video: Video = Field(..., description="IO video")
+        sample_io_image: Image = field(description="test IO image")
+        sample_io_audio: Audio = field(description="test IO audio")
+        sample_io_video: Video = field(description="test IO video")
 
     return IO
 
@@ -149,8 +138,8 @@ def sample_io_data():
 @pytest.fixture
 def sample_param_data():
     class Param(CoreModel):
-        min: int
-        max: int
+        min: int = Field(..., description="test")
+        max: int = Field(..., description="test")
 
     return Param
 
@@ -171,7 +160,7 @@ def sample_audio_data():
 def sample_pil_image_data() -> PILImage:
     width, height = 100, 100
     nd_image = np.zeros((height, width, 3), dtype=np.uint8)
-    pil_image = PIL.Image.fromarray(nd_image)
+    pil_image = PIL.Image.fromarray(nd_image)  # type: ignore
     return pil_image
 
 
@@ -179,9 +168,9 @@ def sample_pil_image_data() -> PILImage:
 @pytest.fixture
 def test_model():
     class TestModel(BaseModel):
-        name: str
-        age: int
-        gender: str
+        name: str = Field(..., description="test")
+        age: int = Field(..., description="test")
+        gender: str = Field(..., description="test")
 
     return TestModel
 

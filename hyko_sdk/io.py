@@ -11,14 +11,13 @@ import soundfile  # type: ignore
 from fastapi import HTTPException, status
 from numpy.typing import NDArray
 from PIL import Image as PIL_Image
-from pydantic import (
-    GetCoreSchemaHandler,
-    GetJsonSchemaHandler,
-)
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 
-from .models import Ext, StorageConfig, extension_to_mimetype
+from .components.components import Ext
+from .models import StorageConfig
+from .utils import extension_to_mimetype
 
 
 class HykoBaseType:
@@ -187,7 +186,7 @@ class Image(HykoBaseType):
     ) -> "Image":
         file = io.BytesIO()
         img = PIL_Image.fromarray(arr)  # type: ignore
-        img.save(file, format=encoding.value)
+        img.save(file, format=encoding.value)  # type: ignore
 
         return await Image(
             obj_ext=encoding,
@@ -201,7 +200,7 @@ class Image(HykoBaseType):
         encoding: Ext = Ext.PNG,
     ) -> "Image":
         file = io.BytesIO()
-        img.save(file, format=encoding.value)
+        img.save(file, format=encoding.value)  # type: ignore
 
         return await Image(
             obj_ext=encoding,
@@ -212,7 +211,7 @@ class Image(HykoBaseType):
     async def to_ndarray(self, keep_alpha_if_png: bool = False) -> NDArray[Any]:
         data = await self.get_data()
         img_bytes_io = io.BytesIO(data)
-        img = PIL_Image.open(img_bytes_io)
+        img = PIL_Image.open(img_bytes_io)  # type: ignore
         img = np.asarray(img)
         if keep_alpha_if_png:
             return img
@@ -221,7 +220,7 @@ class Image(HykoBaseType):
     async def to_pil(self) -> PIL_Image.Image:
         data = await self.get_data()
         img_bytes_io = io.BytesIO(data)
-        img = PIL_Image.open(img_bytes_io)
+        img = PIL_Image.open(img_bytes_io)  # type: ignore
         return img
 
 
@@ -358,4 +357,23 @@ class PDF(HykoBaseType):
         obj_id = UUID(obj_id)
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
+        return PDF(obj_ext=obj_ext, file_name=file_name)
+
+
+class CSV(HykoBaseType):
+    @staticmethod
+    def validate_object(val: "CSV"):
+        file_name = val.file_name
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
+        return PDF(obj_ext=obj_ext, file_name=file_name)
+
+    @staticmethod
+    def validate_file_name(file_name: str):
+        obj_id, obj_ext = os.path.splitext(file_name)
+        obj_id = UUID(obj_id)
+        obj_ext = Ext(obj_ext.lstrip("."))
+        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
         return PDF(obj_ext=obj_ext, file_name=file_name)
