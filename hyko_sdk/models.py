@@ -56,6 +56,7 @@ class FieldMetadata(BaseModel):
     value: Optional[Any] = None
 
     items: Optional[Item | Ref] = None
+    hidden: Optional[bool] = None
 
     @field_validator("items")
     @classmethod

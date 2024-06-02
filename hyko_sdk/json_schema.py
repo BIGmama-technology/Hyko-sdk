@@ -38,6 +38,7 @@ class Property(BaseModel):
     ref: Optional[str] = Field(default=None, alias="$ref")
 
     component: Optional[Components] = None
+    hidden: Optional[bool] = None
 
     model_config = ConfigDict(populate_by_name=True)
 
