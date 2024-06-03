@@ -145,6 +145,10 @@ class ListComponent(Component):
     item_component: Optional["Components"] = None
 
 
+class ButtonComponent(Component):
+    text: str
+
+
 def get_name(v: Any):
     """Name discriminator function."""
     try:
@@ -169,6 +173,7 @@ Components = Annotated[
         Annotated[TextPreview, Tag("TextPreview")],
         Annotated[PDFPreview, Tag("PDFPreview")],
         Annotated[AudioPreview, Tag("AudioPreview")],
+        Annotated[ButtonComponent, Tag("ButtonComponent")],
     ],
     Discriminator(get_name),
 ]
