@@ -149,6 +149,10 @@ class ButtonComponent(Component):
     text: str
 
 
+class RefreshableSelect(Select):
+    callback_id: str
+
+
 def get_name(v: Any):
     """Name discriminator function."""
     try:
@@ -174,6 +178,7 @@ Components = Annotated[
         Annotated[PDFPreview, Tag("PDFPreview")],
         Annotated[AudioPreview, Tag("AudioPreview")],
         Annotated[ButtonComponent, Tag("ButtonComponent")],
+        Annotated[RefreshableSelect, Tag("RefreshableSelect")],
     ],
     Discriminator(get_name),
 ]

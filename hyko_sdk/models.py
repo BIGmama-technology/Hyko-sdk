@@ -68,7 +68,6 @@ class FieldMetadata(BaseModel):
     component: Optional[Components] = None
 
     callback_id: Optional[str] = None
-    refresh_id: Optional[str] = None
 
 
 Icon = Literal[
