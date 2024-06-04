@@ -25,6 +25,23 @@ class Category(str, Enum):
     IO = "io"
 
 
+class SupportedProviders(str, Enum):
+    """Supported third-party providers."""
+
+    GITHUB = "github"
+    DISCORD = "discord"
+    NOTION = "notion"
+    AIRTABLE = "airtable"
+    TWITTER = "twitter"
+    REDDIT = "reddit"
+    OUTLOOK = "outlook"
+    DRIVE = "drive"
+    DOCS = "docs"
+    SHEETS = "sheets"
+    GMAIL = "gmail"
+    YOUTUBE = "youtube"
+
+
 class FieldMetadata(BaseModel):
     type: PortType
     name: str
@@ -39,6 +56,7 @@ class FieldMetadata(BaseModel):
     value: Optional[Any] = None
 
     items: Optional[Item | Ref] = None
+    hidden: Optional[bool] = None
 
     @field_validator("items")
     @classmethod
@@ -117,6 +135,7 @@ class MetaDataBase(BaseModel):
     description: str
     category: Category
     cost: int = 0
+    auth: Optional[SupportedProviders] = None
 
     icon: Optional[Annotated[str, Icon]] = None
 
