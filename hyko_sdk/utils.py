@@ -10,10 +10,12 @@ def field(
     description: str,
     default: Optional[Any] = None,
     component: Optional[Components] = None,
+    alias: Optional[str] = None,
 ) -> Any:
     return Field(
         default=default,
         description=description,
+        alias=alias,
         json_schema_extra={
             "component": component.model_dump() if component else None,
         },
