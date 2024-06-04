@@ -30,14 +30,47 @@ OnCallType = Callable[..., Coroutine[Any, Any, OutputsType]]
 T = TypeVar("T", bound=Type[BaseModel])
 
 
+class Registry:
+    _registry: dict[str, "ToolkitNode"] = {}
+    _callbacks_registry: dict[
+        str, Callable[..., Coroutine[Any, Any, MetaDataBase]]
+    ] = {}
+
+    @classmethod
+    def register(cls, name: str, definition: "ToolkitNode"):
+        cls._registry[name] = definition
+
+    @classmethod
+    def get_handler(cls, name: str) -> "ToolkitNode":
+        if name not in cls._registry:
+            raise ValueError(f"handler {name} not found")
+        return cls._registry[name]
+
+    @classmethod
+    def get_all_metadata(cls):
+        return [definition.get_metadata() for definition in cls._registry.values()]
+
+    @classmethod
+    def register_callback(
+        cls, id: str, callback: Callable[..., Coroutine[Any, Any, MetaDataBase]]
+    ):
+        cls._callbacks_registry[id] = callback
+
+    @classmethod
+    def get_callback(cls, id: str):
+        if id not in cls._callbacks_registry:
+            raise ValueError(f"callback {id} not found")
+        return cls._callbacks_registry[id]
+
+
 class ToolkitNode:
     def __init__(
         self,
         name: str,
         task: str,
         description: str,
-        cost: int,
         category: Category,
+        cost: int = 0,
         icon: Optional[Icon] = None,
         auth: Optional[SupportedProviders] = None,
     ):
@@ -57,6 +90,9 @@ class ToolkitNode:
         # For models
         self.started: bool = False
         self._startup = None
+
+        # Automatically register the instance upon creation
+        Registry.register(self.get_metadata().image, self)
 
     def fields_to_metadata(
         self,
@@ -137,3 +173,22 @@ class ToolkitNode:
         await self.startup(validated_params)
 
         return await self._call(validated_inputs, validated_params)
+
+    def callback(self, trigger: str | list[str], id: str):
+        if isinstance(trigger, list):
+            for item in trigger:
+                field = self.params.get(item)
+                assert field, "trigger field not found in params"
+                field.callback_id = id
+        else:
+            field = self.params.get(trigger)
+            assert field, "trigger field not found in params"
+            field.callback_id = id
+
+        def wrapper(
+            callback: Callable[..., Coroutine[Any, Any, MetaDataBase]],
+        ):
+            Registry.register_callback(id, callback)
+            return callback
+
+        return wrapper
