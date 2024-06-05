@@ -9,13 +9,13 @@ from .json_schema import (
     JsonSchemaGeneratorWithComponents,
 )
 from .models import (
-    Category,
     CoreModel,
     FieldMetadata,
     Icon,
     MetaDataBase,
     StorageConfig,
     SupportedProviders,
+    Tag,
 )
 
 InputsType = TypeVar("InputsType", bound="BaseModel")
@@ -67,32 +67,36 @@ class ToolkitNode:
     def __init__(
         self,
         name: str,
-        task: str,
         description: str,
-        category: Category,
         cost: int = 0,
         icon: Optional[Icon] = None,
+        tag: Optional[Tag] = None,
         auth: Optional[SupportedProviders] = None,
+        require_worker: bool = False,
     ):
-        self.category = category
+        self.tag = tag
         self.description = description
         self.name = name
-        self.task = task
         self.cost = cost
         self.icon = icon
+
         self.inputs = {}
         self.outputs = {}
         self.params = {}
+
         self.inputs_model = CoreModel
         self.params_model = CoreModel
+
         self.auth = auth
+
+        self.require_worker = require_worker
 
         # For models
         self.started: bool = False
         self._startup = None
 
         # Automatically register the instance upon creation
-        Registry.register(self.get_metadata().image, self)
+        Registry.register(self.get_metadata().name, self)
 
     def fields_to_metadata(
         self,
@@ -131,13 +135,13 @@ class ToolkitNode:
 
     def get_metadata(self):
         return MetaDataBase(
-            category=self.category,
             name=self.name,
-            task=self.task,
             description=self.description,
+            tag=self.tag,
             inputs=self.inputs,
             params=self.params,
             outputs=self.outputs,
+            require_worker=self.require_worker,
             cost=self.cost,
             icon=self.icon,
             auth=self.auth,

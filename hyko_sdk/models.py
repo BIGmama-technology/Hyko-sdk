@@ -8,8 +8,6 @@ from pydantic import (
     field_validator,
 )
 
-from hyko_sdk.utils import to_image
-
 from .components.components import (
     Components,
 )
@@ -17,12 +15,12 @@ from .components.utils import to_display_name
 from .json_schema import Item, PortType, Ref
 
 
-class Category(str, Enum):
-    MODEL = "models"
-    FUNCTION = "functions"
-    API = "apis"
-    UTILS = "utils"
-    IO = "io"
+class Tag(str, Enum):
+    core = "core"
+    utilities = "utilities"
+    writers = "writers"
+    readers = "readers"
+    ai = "ai"
 
 
 class SupportedProviders(str, Enum):
@@ -125,19 +123,16 @@ Icon = Literal[
 
 
 class MetaDataBase(BaseModel):
-    @computed_field
-    @property
-    def image(self) -> str:
-        return to_image(self.category.value + "/" + self.task + "/" + self.name)
-
     name: str
-    task: str
     description: str
-    category: Category
+
     cost: int = 0
+    tag: Optional[Tag] = None
     auth: Optional[SupportedProviders] = None
 
     icon: Optional[Annotated[str, Icon]] = None
+
+    require_worker: bool = False
 
     params: dict[str, FieldMetadata] = {}
     inputs: dict[str, FieldMetadata] = {}
