@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, Callable, Coroutine, Optional, Type, TypeVar
 
 from pydantic import BaseModel
@@ -63,23 +64,21 @@ class Registry:
         return cls._callbacks_registry[id]
 
 
+@dataclass
 class ToolkitNode:
-    def __init__(
-        self,
-        name: str,
-        description: str,
-        cost: int = 0,
-        icon: Optional[Icon] = None,
-        tag: Optional[Tag] = None,
-        auth: Optional[SupportedProviders] = None,
-        require_worker: bool = False,
-    ):
-        self.tag = tag
-        self.description = description
-        self.name = name
-        self.cost = cost
-        self.icon = icon
+    name: str
+    description: str
+    cost: int = 0
+    icon: Optional[Icon] = None
+    tag: Optional[Tag] = None
+    auth: Optional[SupportedProviders] = None
+    require_worker: bool = False
+    is_output: bool = False
+    is_input: bool = False
 
+    def __post_init__(
+        self,
+    ):
         self.inputs = {}
         self.outputs = {}
         self.params = {}
@@ -87,9 +86,7 @@ class ToolkitNode:
         self.inputs_model = CoreModel
         self.params_model = CoreModel
 
-        self.auth = auth
-
-        self.require_worker = require_worker
+        self._call = None
 
         # For models
         self.started: bool = False
@@ -142,6 +139,8 @@ class ToolkitNode:
             params=self.params,
             outputs=self.outputs,
             require_worker=self.require_worker,
+            is_input=self.is_input,
+            is_output=self.is_output,
             cost=self.cost,
             icon=self.icon,
             auth=self.auth,
@@ -176,7 +175,10 @@ class ToolkitNode:
 
         await self.startup(validated_params)
 
-        return await self._call(validated_inputs, validated_params)
+        if self._call:
+            return await self._call(validated_inputs, validated_params)
+        else:
+            return CoreModel()
 
     def callback(self, trigger: str | list[str], id: str):
         if isinstance(trigger, list):

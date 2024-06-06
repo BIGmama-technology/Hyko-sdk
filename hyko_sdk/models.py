@@ -133,6 +133,8 @@ class MetaDataBase(BaseModel):
     icon: Optional[Annotated[str, Icon]] = None
 
     require_worker: bool = False
+    is_input: bool = False
+    is_output: bool = False
 
     params: dict[str, FieldMetadata] = {}
     inputs: dict[str, FieldMetadata] = {}
