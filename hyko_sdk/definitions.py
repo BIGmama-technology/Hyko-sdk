@@ -72,9 +72,10 @@ class ToolkitNode:
     icon: Optional[Icon] = None
     tag: Optional[Tag] = None
     auth: Optional[SupportedProviders] = None
-    require_worker: bool = False
-    is_output: bool = False
-    is_input: bool = False
+    require_worker: Optional[bool] = None
+    is_output: Optional[bool] = None
+    is_input: Optional[bool] = None
+    is_group_node: Optional[bool] = None
 
     def __post_init__(
         self,
@@ -144,6 +145,7 @@ class ToolkitNode:
             cost=self.cost,
             icon=self.icon,
             auth=self.auth,
+            is_group_node=self.is_group_node,
         )
 
     def on_call(self, f: OnCallType[...]):

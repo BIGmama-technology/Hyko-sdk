@@ -132,9 +132,10 @@ class MetaDataBase(BaseModel):
 
     icon: Optional[Annotated[str, Icon]] = None
 
-    require_worker: bool = False
-    is_input: bool = False
-    is_output: bool = False
+    require_worker: Optional[bool] = None
+    is_input: Optional[bool] = None
+    is_output: Optional[bool] = None
+    is_group_node: Optional[bool] = None
 
     params: dict[str, FieldMetadata] = {}
     inputs: dict[str, FieldMetadata] = {}
