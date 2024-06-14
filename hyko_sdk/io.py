@@ -46,12 +46,10 @@ class HykoBaseType:
         )
 
     @staticmethod
-    def validate_object(val: Any) -> Any:
-        ...
+    def validate_object(val: Any) -> Any: ...
 
     @staticmethod
-    def validate_file_name(file_name: str) -> Any:
-        ...
+    def validate_file_name(file_name: str) -> Any: ...
 
     def get_name(self) -> str:
         return self.file_name
@@ -134,7 +132,7 @@ class Image(HykoBaseType):
     def validate_object(val: "Image"):
         file_name = val.file_name
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [
             Ext.PNG,
@@ -158,7 +156,7 @@ class Image(HykoBaseType):
     @staticmethod
     def validate_file_name(file_name: str):
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [
             Ext.PNG,
@@ -229,7 +227,7 @@ class Audio(HykoBaseType):
     def validate_object(val: "Audio"):
         file_name = val.file_name
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [
             Ext.MP3,
@@ -241,7 +239,7 @@ class Audio(HykoBaseType):
     @staticmethod
     def validate_file_name(file_name: str):
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [
             Ext.MP3,
@@ -311,7 +309,7 @@ class Video(HykoBaseType):
     def validate_object(val: "Video"):
         file_name = val.file_name
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [
             Ext.MP4,
@@ -327,7 +325,7 @@ class Video(HykoBaseType):
     @staticmethod
     def validate_file_name(file_name: str):
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [
             Ext.MP4,
@@ -346,7 +344,7 @@ class PDF(HykoBaseType):
     def validate_object(val: "PDF"):
         file_name = val.file_name
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
         return PDF(obj_ext=obj_ext, file_name=file_name)
@@ -354,7 +352,7 @@ class PDF(HykoBaseType):
     @staticmethod
     def validate_file_name(file_name: str):
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [Ext.PDF], "Invalid file extension for PDF error"
         return PDF(obj_ext=obj_ext, file_name=file_name)
@@ -365,7 +363,7 @@ class CSV(HykoBaseType):
     def validate_object(val: "CSV"):
         file_name = val.file_name
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
         return PDF(obj_ext=obj_ext, file_name=file_name)
@@ -373,7 +371,7 @@ class CSV(HykoBaseType):
     @staticmethod
     def validate_file_name(file_name: str):
         obj_id, obj_ext = os.path.splitext(file_name)
-        obj_id = UUID(obj_id)
+        obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
         assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
         return PDF(obj_ext=obj_ext, file_name=file_name)
