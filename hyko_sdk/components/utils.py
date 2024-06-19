@@ -16,7 +16,7 @@ def to_display_name(field_name: str) -> str:
     'User Age Data Input'
     """
     # Remove any special characters except underscores
-    cleaned_name = re.sub(r"[^a-zA-Z0-9_]", "", field_name)
+    cleaned_name = re.sub(r"[^a-zA-Z0-9_ ]", "", field_name)
 
     # Replace underscores with spaces
     spaced_name = cleaned_name.replace("_", " ")

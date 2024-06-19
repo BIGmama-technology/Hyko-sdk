@@ -30,6 +30,7 @@ mimetype_to_extension = {
     "application/pdf": "pdf",
     "image/png": "png",
     "image/jpeg": "jpeg",
+    "image/jpg": "jpg",
     "image/gif": "gif",
     "image/bmp": "bmp",
     "image/webp": "webp",
