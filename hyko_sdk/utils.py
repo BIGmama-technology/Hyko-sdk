@@ -43,6 +43,8 @@ mimetype_to_extension = {
     "video/x-matroska": "mkv",
     "video/quicktime": "mov",
     "video/x-ms-wmv": "wmv",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
 }
 extension_to_mimetype = {value: key for key, value in mimetype_to_extension.items()}
 

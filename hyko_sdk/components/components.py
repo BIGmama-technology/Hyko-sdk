@@ -34,6 +34,8 @@ class Ext(str, Enum):
     RAS = "ras"
     HDR = "hdr"
     WEBP = "webp"
+    XLSX = "xlsx"
+    DOCX = "docx"
 
 
 class PortType(str, Enum):
@@ -47,7 +49,7 @@ class PortType(str, Enum):
     AUDIO = "audio"
     VIDEO = "video"
     PDF = "pdf"
-    CSV = "csv"
+    DOCUMENT = "document"
 
     ANY = "any"
     OBJECT = "object"
