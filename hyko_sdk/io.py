@@ -46,10 +46,12 @@ class HykoBaseType:
         )
 
     @staticmethod
-    def validate_object(val: Any) -> Any: ...
+    def validate_object(val: Any) -> Any:
+        ...
 
     @staticmethod
-    def validate_file_name(file_name: str) -> Any: ...
+    def validate_file_name(file_name: str) -> Any:
+        ...
 
     def get_name(self) -> str:
         return self.file_name
@@ -358,20 +360,30 @@ class PDF(HykoBaseType):
         return PDF(obj_ext=obj_ext, file_name=file_name)
 
 
-class CSV(HykoBaseType):
+class Document(HykoBaseType):
     @staticmethod
-    def validate_object(val: "CSV"):
+    def validate_object(val: "Document"):
         file_name = val.file_name
         obj_id, obj_ext = os.path.splitext(file_name)
         obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
-        return PDF(obj_ext=obj_ext, file_name=file_name)
+        assert obj_ext.value in [
+            Ext.CSV,
+            Ext.XLSX,
+            Ext.DOCX,
+            Ext.PDF,
+        ], "Invalid file extension for document error"
+        return Document(obj_ext=obj_ext, file_name=file_name)
 
     @staticmethod
     def validate_file_name(file_name: str):
         obj_id, obj_ext = os.path.splitext(file_name)
         obj_id = UUID(obj_id.split("_")[0])
         obj_ext = Ext(obj_ext.lstrip("."))
-        assert obj_ext.value in [Ext.CSV], "Invalid file extension for CSV error"
-        return PDF(obj_ext=obj_ext, file_name=file_name)
+        assert obj_ext.value in [
+            Ext.CSV,
+            Ext.XLSX,
+            Ext.DOCX,
+            Ext.PDF,
+        ], "Invalid file extension for document error"
+        return Document(obj_ext=obj_ext, file_name=file_name)
