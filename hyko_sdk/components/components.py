@@ -72,8 +72,13 @@ class Toggle(Component):
     pass
 
 
+class SelectChoice(BaseModel):
+    label: str | int | float
+    value: str | int | float
+
+
 class Select(Component):
-    choices: list[str | int | float]
+    choices: list[SelectChoice]
 
 
 class Search(Component):
@@ -140,6 +145,14 @@ class ListComponent(Component):
     item_component: Optional["Components"] = None
 
 
+class ButtonComponent(Component):
+    text: str
+
+
+class RefreshableSelect(Select):
+    callback_id: str
+
+
 def get_name(v: Any):
     """Name discriminator function."""
     try:
@@ -164,6 +177,8 @@ Components = Annotated[
         Annotated[TextPreview, Tag("TextPreview")],
         Annotated[PDFPreview, Tag("PDFPreview")],
         Annotated[AudioPreview, Tag("AudioPreview")],
+        Annotated[ButtonComponent, Tag("ButtonComponent")],
+        Annotated[RefreshableSelect, Tag("RefreshableSelect")],
     ],
     Discriminator(get_name),
 ]

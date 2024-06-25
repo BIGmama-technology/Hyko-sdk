@@ -8,8 +8,6 @@ from pydantic import (
     field_validator,
 )
 
-from hyko_sdk.utils import to_image
-
 from .components.components import (
     Components,
 )
@@ -17,12 +15,29 @@ from .components.utils import to_display_name
 from .json_schema import Item, PortType, Ref
 
 
-class Category(str, Enum):
-    MODEL = "models"
-    FUNCTION = "functions"
-    API = "apis"
-    UTILS = "utils"
-    IO = "io"
+class Tag(str, Enum):
+    core = "core"
+    utilities = "utilities"
+    writers = "writers"
+    readers = "readers"
+    ai = "ai"
+
+
+class SupportedProviders(str, Enum):
+    """Supported third-party providers."""
+
+    GITHUB = "github"
+    DISCORD = "discord"
+    NOTION = "notion"
+    AIRTABLE = "airtable"
+    TWITTER = "twitter"
+    REDDIT = "reddit"
+    OUTLOOK = "outlook"
+    DRIVE = "drive"
+    DOCS = "docs"
+    SHEETS = "sheets"
+    GMAIL = "gmail"
+    YOUTUBE = "youtube"
 
 
 class FieldMetadata(BaseModel):
@@ -39,6 +54,7 @@ class FieldMetadata(BaseModel):
     value: Optional[Any] = None
 
     items: Optional[Item | Ref] = None
+    hidden: Optional[bool] = None
 
     @field_validator("items")
     @classmethod
@@ -103,22 +119,24 @@ Icon = Literal[
     "resize",
     "rotate",
     "stack",
+    "email",
 ]
 
 
 class MetaDataBase(BaseModel):
-    @computed_field
-    @property
-    def image(self) -> str:
-        return to_image(self.category.value + "/" + self.task + "/" + self.name)
-
     name: str
-    task: str
     description: str
-    category: Category
+
     cost: int = 0
+    tag: Optional[Tag] = None
+    auth: Optional[SupportedProviders] = None
 
     icon: Optional[Annotated[str, Icon]] = None
+
+    require_worker: Optional[bool] = None
+    is_input: Optional[bool] = None
+    is_output: Optional[bool] = None
+    is_group_node: Optional[bool] = None
 
     params: dict[str, FieldMetadata] = {}
     inputs: dict[str, FieldMetadata] = {}
