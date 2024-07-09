@@ -119,6 +119,7 @@ Icon = Literal[
     "resize",
     "rotate",
     "stack",
+    "email",
 ]
 
 

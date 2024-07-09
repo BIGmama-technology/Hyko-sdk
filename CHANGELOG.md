@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.6.0](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.5.0...v4.6.0) (2024-06-25)
+
+
+### Features
+
+* add alias to field ([96adb4a](https://github.com/BIGmama-technology/Hyko-sdk/commit/96adb4a37fe59c8d00f2d73e98d381c1e150e4a5))
+* added button component ([12bc4b9](https://github.com/BIGmama-technology/Hyko-sdk/commit/12bc4b98f54a5e98fe5330e5101099a2be2d52c5))
+* added hidden field for fields that we don't want to show on the frontend ([26376f3](https://github.com/BIGmama-technology/Hyko-sdk/commit/26376f3e3646cf6036402ebb4caad53bf35c537f))
+* added refreshable select component ([2507420](https://github.com/BIGmama-technology/Hyko-sdk/commit/2507420a3c08d6699094ccda7088ed2648d8070f))
+* move registry here ([8cca05e](https://github.com/BIGmama-technology/Hyko-sdk/commit/8cca05e3ee93f180b37acced6bce490461597764))
+* updated io validation to use new filename struct ([7dcb6f0](https://github.com/BIGmama-technology/Hyko-sdk/commit/7dcb6f0972a7f33793b642ea3f1ae64933a3d820))
+
+
+### Bug Fixes
+
+* add jpg to mimetype dict ([f492035](https://github.com/BIGmama-technology/Hyko-sdk/commit/f492035151d5eb0587fc1e87f5191ac480a080fd))
+* fixed regex pattern in to_display name util to not remove spaces ([7af824c](https://github.com/BIGmama-technology/Hyko-sdk/commit/7af824c4721a6d56924bc28221c15e9fae209a6c))
+* remove category and task and replace image with name ([9d2bc74](https://github.com/BIGmama-technology/Hyko-sdk/commit/9d2bc74a6382f209b1051091c60b44999562f83c))
+
 ## [4.5.0](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.4.0...v4.5.0) (2024-05-30)
 
 
