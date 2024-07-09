@@ -1,3 +1,4 @@
+"""Hyko IO types"""
 import asyncio
 import io
 import os
