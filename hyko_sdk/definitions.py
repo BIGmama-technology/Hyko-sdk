@@ -72,7 +72,6 @@ class ToolkitNode:
     icon: Optional[Icon] = None
     tag: Optional[Tag] = None
     auth: Optional[SupportedProviders] = None
-    require_worker: Optional[bool] = None
     is_output: Optional[bool] = None
     is_input: Optional[bool] = None
     is_group_node: Optional[bool] = None
@@ -139,7 +138,6 @@ class ToolkitNode:
             inputs=self.inputs,
             params=self.params,
             outputs=self.outputs,
-            require_worker=self.require_worker,
             is_input=self.is_input,
             is_output=self.is_output,
             cost=self.cost,
