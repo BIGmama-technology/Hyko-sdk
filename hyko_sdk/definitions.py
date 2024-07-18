@@ -23,7 +23,6 @@ InputsType = TypeVar("InputsType", bound="BaseModel")
 ParamsType = TypeVar("ParamsType", bound="BaseModel")
 OutputsType = TypeVar("OutputsType", bound="BaseModel")
 
-OnStartupFuncType = Callable[[ParamsType], Coroutine[Any, Any, None]]
 OnShutdownFuncType = Callable[[], Coroutine[Any, Any, None]]
 OnExecuteFuncType = Callable[[InputsType, ParamsType], Coroutine[Any, Any, OutputsType]]
 OnCallType = Callable[..., Coroutine[Any, Any, OutputsType]]
@@ -88,10 +87,6 @@ class ToolkitNode:
 
         self._call = None
 
-        # For models
-        self.started: bool = False
-        self._startup = None
-
         # Automatically register the instance upon creation
         Registry.register(self.get_metadata().name, self)
 
@@ -153,16 +148,6 @@ class ToolkitNode:
         metadata = self.get_metadata()
         return metadata.model_dump_json(exclude_none=True)
 
-    def on_startup(self, f: OnStartupFuncType[...]):
-        self._startup = f
-
-    async def startup(self, validated_params: Any):
-        if self.started or not self._startup:
-            return
-
-        await self._startup(validated_params)
-        self.started = True
-
     async def call(
         self,
         inputs: dict[str, Any],
@@ -172,8 +157,6 @@ class ToolkitNode:
         StorageConfig.configure(**storage_config.model_dump())
         validated_inputs = self.inputs_model(**inputs)
         validated_params = self.params_model(**params)
-
-        await self.startup(validated_params)
 
         if self._call:
             return await self._call(validated_inputs, validated_params)

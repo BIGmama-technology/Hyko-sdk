@@ -96,14 +96,6 @@ def bad_execute():
 
 
 @pytest.fixture
-def startup():
-    async def startup(start_params: BaseModel):
-        pass
-
-    return startup
-
-
-@pytest.fixture
 def toolkit_base():
     return ToolkitNode(
         name="Test Toolkit",
