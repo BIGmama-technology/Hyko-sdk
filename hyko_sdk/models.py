@@ -133,7 +133,6 @@ class MetaDataBase(BaseModel):
 
     icon: Optional[Annotated[str, Icon]] = None
 
-    require_worker: Optional[bool] = None
     is_input: Optional[bool] = None
     is_output: Optional[bool] = None
     is_group_node: Optional[bool] = None
