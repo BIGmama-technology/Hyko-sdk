@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.1](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.6.0...v4.6.1) (2024-07-18)
+
+
+### Bug Fixes
+
+* remove require_worker ([51087a0](https://github.com/BIGmama-technology/Hyko-sdk/commit/51087a057d219183a5824c15028ac672065e5002))
+
 ## [4.6.0](https://github.com/BIGmama-technology/Hyko-sdk/compare/v4.5.0...v4.6.0) (2024-06-25)
 
 
